@@ -1,0 +1,33 @@
+{
+  "name": "tnd-monorepo",
+  "version": "1.0.0",
+  "description": "Truth and Dare multiplayer platform using NestJS microservices and Next.js",
+  "private": true,
+  "workspaces": [
+    "backend/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:gateway": "npm run start:dev -w backend/api-gateway",
+    "dev:user": "npm run start:dev -w backend/user-service",
+    "dev:room": "npm run start:dev -w backend/room-service",
+    "dev:game": "npm run start:dev -w backend/game-service",
+    "dev:question": "npm run start:dev -w backend/question-service",
+    "dev:timer": "npm run start:dev -w backend/timer-service",
+    "dev:chat": "npm run start:dev -w backend/chat-service",
+    "dev:leaderboard": "npm run start:dev -w backend/leaderboard-service",
+    "dev:friend": "npm run start:dev -w backend/friend-service",
+    "dev:notification": "npm run start:dev -w backend/notification-service",
+    "dev:moderation": "npm run start:dev -w backend/moderation-service",
+    "dev:ai": "npm run start:dev -w backend/ai-service",
+    "dev:analytics": "npm run start:dev -w backend/analytics-service",
+    "dev:payment": "npm run start:dev -w backend/payment-service",
+    "dev": "concurrently \"npm run dev:gateway\" \"npm run dev:user\" \"npm run dev:room\" \"npm run dev:game\" \"npm run dev:question\" \"npm run dev:timer\" \"npm run dev:chat\" \"npm run dev:leaderboard\" \"npm run dev:friend\" \"npm run dev:notification\" \"npm run dev:moderation\" \"npm run dev:ai\" \"npm run dev:analytics\" \"npm run dev:payment\""
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.3"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2"
+  }
+}
