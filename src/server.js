@@ -17,7 +17,11 @@ const startServer = async () => {
     // 1. Connect to MongoDB (Strict constraint: If MongoDB fails, we crash)
     await connectDB();
 
-    // 2. Connect to Redis (Graceful: If Redis fails, we log it but still run the server)
+    // 2. Seed static system questions catalog
+    const { QuestionService } = await import("./modules/question/question.service.js");
+    await QuestionService.seedStaticQuestions();
+
+    // 3. Connect to Redis (Graceful: If Redis fails, we log it but still run the server)
     await connectRedis();
 
     // Create HTTP server wrapping the Express app instance

@@ -212,6 +212,10 @@ class RoomService {
       room.status = "finished";
       await room.save();
       
+      // Clear active turn timer for this closed room
+      const { stopTurnTimer } = await import("./room.timer.js");
+      stopTurnTimer(code);
+      
       // Clean up mock store
       if (process.env.USE_MOCK_DB === "true") {
         const idx = mockRooms.findIndex((r) => r._id === room._id);
@@ -342,31 +346,19 @@ class RoomService {
       throw new ApiError(400, "Invalid type. Must be 'truth' or 'dare'.");
     }
 
-    const STATIC_QUESTIONS = {
-      truth: [
-        { id: "t1", text: "What is your biggest secret?" },
-        { id: "t2", text: "Have you ever lied to anyone in this room?" },
-        { id: "t3", text: "What is the most embarrassing thing you've ever done?" },
-        { id: "t4", text: "What is your biggest fear?" },
-        { id: "t5", text: "Who was your first crush?" }
-      ],
-      dare: [
-        { id: "d1", text: "Do 10 pushups." },
-        { id: "d2", text: "Sing a song out loud." },
-        { id: "d3", text: "Send a silly selfie to the chat." },
-        { id: "d4", text: "Tell a funny joke." },
-        { id: "d5", text: "Do a funny dance for 30 seconds." }
-      ]
-    };
+    const { QuestionService } = await import("../question/question.service.js");
+    
+    // Call QuestionService to generate an AI question (which falls back to catalog automatically if needed)
+    const question = await QuestionService.generateAIQuestion(type, "medium", "funny");
 
-    const questionsList = STATIC_QUESTIONS[type];
-    const randomIndex = Math.floor(Math.random() * questionsList.length);
-    const chosenQuestion = questionsList[randomIndex];
+    if (!question) {
+      throw new ApiError(500, "Failed to retrieve a question for the turn.");
+    }
 
     room.game.selectedType = type;
     room.game.currentQuestion = {
-      id: chosenQuestion.id,
-      text: chosenQuestion.text,
+      id: question._id || question.id,
+      text: question.text,
       type
     };
     room.game.turnState = "answering";

@@ -20,10 +20,12 @@ app.use(cookieParser());
 // Import Routes
 import authRouter from "./modules/auth/auth.routes.js";
 import roomRouter from "./modules/room/room.routes.js";
+import questionRouter from "./modules/question/question.routes.js";
 
 // Declare Routes
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/rooms", roomRouter);
+app.use("/api/v1/questions", questionRouter);
 
 // Base Route Healthcheck
 app.get("/healthcheck", (req, res) => {

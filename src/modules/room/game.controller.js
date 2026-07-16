@@ -2,6 +2,7 @@ import { RoomService } from "./room.service.js";
 import { ApiResponse } from "../../utils/ApiResponse.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { getIO } from "../../config/socket.js";
+import { startTurnTimer, stopTurnTimer } from "./room.timer.js";
 
 const startGame = asyncHandler(async (req, res) => {
   const { code } = req.params;
@@ -34,6 +35,10 @@ const chooseType = asyncHandler(async (req, res) => {
   const { type } = req.body;
   const room = await RoomService.chooseTruthOrDare(code, req.user._id, type);
 
+  // Start turn timer (defaults to 30 seconds, configurable via env)
+  const timerLimit = parseInt(process.env.TURN_TIMER_LIMIT) || 30;
+  startTurnTimer(code, timerLimit);
+
   // Broadcast to all players in the room the selected choice and question details
   const roomChannel = `room_${code.toUpperCase()}`;
   getIO().to(roomChannel).emit("type_chosen", room);
@@ -48,6 +53,9 @@ const submitOutcome = asyncHandler(async (req, res) => {
   const { outcome } = req.body;
   const room = await RoomService.submitTurnOutcome(code, req.user._id, outcome);
 
+  // Stop active turn timer since outcome is submitted
+  stopTurnTimer(code);
+
   // Broadcast to all players in the room the turn outcome results and score adjustments
   const roomChannel = `room_${code.toUpperCase()}`;
   getIO().to(roomChannel).emit("turn_result", room);
@@ -60,6 +68,9 @@ const submitOutcome = asyncHandler(async (req, res) => {
 const endGame = asyncHandler(async (req, res) => {
   const { code } = req.params;
   const room = await RoomService.endGame(code, req.user._id);
+
+  // Stop timer in case it was running
+  stopTurnTimer(code);
 
   // Broadcast to all players in the room that the game has ended
   const roomChannel = `room_${code.toUpperCase()}`;
