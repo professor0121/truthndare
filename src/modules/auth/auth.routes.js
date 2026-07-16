@@ -6,7 +6,8 @@ import {
   refreshTokens,
   guestLoginUser,
   convertGuestUser,
-  getCurrentUser
+  getCurrentUser,
+  updateProfile
 } from "./auth.controller.js";
 import { validate } from "../../middleware/validate.middleware.js";
 import { verifyJWT } from "../../middleware/auth.middleware.js";
@@ -28,5 +29,6 @@ router.route("/guest-login").post(guestLoginUser);
 router.route("/logout").post(verifyJWT, logoutUser);
 router.route("/convert-guest").post(verifyJWT, validate(convertGuestSchema), convertGuestUser);
 router.route("/me").get(verifyJWT, getCurrentUser);
+router.route("/profile").patch(verifyJWT, updateProfile);
 
 export default router;

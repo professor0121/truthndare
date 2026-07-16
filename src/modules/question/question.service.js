@@ -207,6 +207,25 @@ class QuestionService {
     console.log("⚠️  AI Generation failed or bypassed. Falling back to local catalog question.");
     return await this.getRandomCatalogQuestion({ type, difficulty, category, language });
   }
+
+  /**
+   * Deletes a question from MongoDB or in-memory mock store.
+   */
+  static async deleteQuestion(questionId) {
+    const idStr = questionId.toString();
+
+    if (process.env.USE_MOCK_DB === "true") {
+      const idx = mockQuestions.findIndex((q) => q._id === idStr);
+      if (idx !== -1) {
+        mockQuestions.splice(idx, 1);
+        return { success: true };
+      }
+      return { success: false };
+    }
+
+    const result = await Question.findByIdAndDelete(idStr);
+    return { success: !!result };
+  }
 }
 
 export { QuestionService, mockQuestions };

@@ -1,4 +1,5 @@
 import { AuthService } from "./auth.service.js";
+import { UserService } from "../user/user.service.js";
 import { ApiResponse } from "../../utils/ApiResponse.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
@@ -107,6 +108,32 @@ const getCurrentUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, req.user, "Current user profile retrieved."));
 });
 
+const updateProfile = asyncHandler(async (req, res) => {
+  const { xp, avatar, role } = req.body;
+  const user = await UserService.findById(req.user._id);
+  if (!user) {
+    throw new ApiError(404, "User not found.");
+  }
+
+  if (xp !== undefined) user.xp = xp;
+  if (avatar !== undefined) user.avatar = avatar;
+  if (role !== undefined) user.role = role;
+
+  await user.save();
+
+  // If Redis is active, update their score in the leaderboard cache
+  const { LeaderboardService } = await import("../leaderboard/leaderboard.service.js");
+  await LeaderboardService.updateUserScore(user);
+
+  const cleanUser = typeof user.toObject === "function" ? user.toObject() : { ...user };
+  delete cleanUser.password_hash;
+  delete cleanUser.refreshToken;
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, cleanUser, "User profile updated successfully."));
+});
+
 export {
   registerUser,
   loginUser,
@@ -114,5 +141,6 @@ export {
   refreshTokens,
   guestLoginUser,
   convertGuestUser,
-  getCurrentUser
+  getCurrentUser,
+  updateProfile
 };

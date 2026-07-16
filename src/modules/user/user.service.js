@@ -17,6 +17,8 @@ const createMockUserInstance = (userData) => {
     level: userData.level !== undefined ? userData.level : 1,
     avatar: userData.avatar || "",
     refreshToken: userData.refreshToken || undefined,
+    isBanned: userData.isBanned !== undefined ? userData.isBanned : false,
+    isMuted: userData.isMuted !== undefined ? userData.isMuted : false,
     createdAt: userData.createdAt || new Date(),
     updatedAt: userData.updatedAt || new Date()
   };
@@ -180,6 +182,18 @@ class UserService {
       { new: true }
     );
   }
+
+  static async getTopUsersByXp(limit) {
+    if (process.env.USE_MOCK_DB === "true") {
+      return [...mockUsers]
+        .sort((a, b) => b.xp - a.xp)
+        .slice(0, limit);
+    }
+    return await User.find({})
+      .sort({ xp: -1 })
+      .limit(limit)
+      .select("username xp level avatar");
+  }
 }
 
-export { UserService };
+export { UserService, mockUsers };

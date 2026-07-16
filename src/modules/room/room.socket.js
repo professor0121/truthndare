@@ -127,6 +127,41 @@ const registerRoomHandlers = (io, socket) => {
       socket.emit("error", { message: "Failed to broadcast emoji." });
     }
   });
+
+  // 6. WebRTC Signaling Relay (SDP Offers, Answers, ICE Candidates)
+  socket.on("webrtc_signal", async ({ roomCode, targetUserId, signalData }) => {
+    try {
+      if (!roomCode || !targetUserId || !signalData) return;
+      const roomCodeUpper = roomCode.toUpperCase();
+
+      // Find room and verify both sender and target exist in it
+      const room = await RoomService.findByCode(roomCodeUpper);
+      if (!room) return;
+
+      const isSenderInRoom = room.players.some((p) => p.userId === socket.user._id.toString());
+      const isTargetInRoom = room.players.some((p) => p.userId === targetUserId.toString());
+
+      if (!isSenderInRoom || !isTargetInRoom) {
+        return socket.emit("error", { message: "WebRTC signaling denied. Members not in the same room." });
+      }
+
+      // Lookup target socket ID
+      const { userSocketMap } = await import("../../config/socket.js");
+      const targetSocketId = userSocketMap.get(targetUserId.toString());
+
+      if (targetSocketId) {
+        // Relay signaling packet to target user
+        io.to(targetSocketId).emit("webrtc_signal", {
+          senderUserId: socket.user._id,
+          signalData
+        });
+      } else {
+        socket.emit("error", { message: "Target user is currently offline." });
+      }
+    } catch (error) {
+      socket.emit("error", { message: "Failed to relay WebRTC signal." });
+    }
+  });
 };
 
 export { registerRoomHandlers };

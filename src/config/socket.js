@@ -4,6 +4,7 @@ import { UserService } from "../modules/user/user.service.js";
 import { registerRoomHandlers } from "../modules/room/room.socket.js";
 
 let io = null;
+const userSocketMap = new Map();
 
 const initSocket = (httpServer) => {
   io = new Server(httpServer, {
@@ -49,13 +50,19 @@ const initSocket = (httpServer) => {
   });
 
   io.on("connection", (socket) => {
-    console.log(`🔌 Socket connected: ${socket.id} (User: ${socket.user.username})`);
+    const userId = socket.user._id.toString();
+    console.log(`🔌 Socket connected: ${socket.id} (User: ${socket.user.username}, ID: ${userId})`);
+
+    // Map the user ID to the current socket ID
+    userSocketMap.set(userId, socket.id);
 
     // Register handlers from room feature module
     registerRoomHandlers(io, socket);
 
     socket.on("disconnect", () => {
       console.log(`🔌 Socket disconnected: ${socket.id} (User: ${socket.user?.username})`);
+      // Clean up mapping
+      userSocketMap.delete(userId);
     });
   });
 
@@ -82,4 +89,4 @@ function parseCookie(cookieStr) {
     }, {});
 }
 
-export { initSocket, getIO };
+export { initSocket, getIO, userSocketMap };

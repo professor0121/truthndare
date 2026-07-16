@@ -51,6 +51,14 @@ const userSchema = new Schema(
     },
     refreshToken: {
       type: String
+    },
+    isBanned: {
+      type: Boolean,
+      default: false
+    },
+    isMuted: {
+      type: Boolean,
+      default: false
     }
   },
   {
