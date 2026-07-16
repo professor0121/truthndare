@@ -13,6 +13,15 @@ const createMockRoomInstance = (roomData) => {
     visibility: roomData.visibility || "private",
     status: roomData.status || "lobby",
     players: roomData.players || [],
+    game: roomData.game || {
+      status: "lobby",
+      currentRound: 0,
+      currentPlayerId: "",
+      turnState: "selecting",
+      selectedType: null,
+      currentQuestion: { id: null, text: null, type: null },
+      winnerId: null
+    },
     createdAt: new Date(),
     updatedAt: new Date()
   };
@@ -241,6 +250,202 @@ class RoomService {
       player.isOnline = isOnline;
       await room.save();
     }
+    return room;
+  }
+
+  static async startGame(code, hostUserId) {
+    const room = await this.findByCode(code);
+    if (!room) {
+      throw new ApiError(404, "Room not found.");
+    }
+
+    if (room.hostId !== hostUserId.toString()) {
+      throw new ApiError(403, "Only the host can start the game.");
+    }
+
+    if (room.players.length < 2) {
+      throw new ApiError(400, "At least 2 players are required to start the game.");
+    }
+
+    // Initialize game state
+    room.status = "playing";
+    room.game = {
+      status: "playing",
+      currentRound: 1,
+      currentPlayerId: "",
+      turnState: "selecting",
+      selectedType: null,
+      currentQuestion: { id: null, text: null, type: null },
+      winnerId: null
+    };
+
+    // Reset scores
+    room.players.forEach((p) => {
+      p.score = 0;
+    });
+
+    await room.save();
+    return room;
+  }
+
+  static async spinBottle(code, hostUserId) {
+    const room = await this.findByCode(code);
+    if (!room) {
+      throw new ApiError(404, "Room not found.");
+    }
+
+    if (room.hostId !== hostUserId.toString()) {
+      throw new ApiError(403, "Only the host can spin the bottle.");
+    }
+
+    if (room.game.status !== "playing") {
+      throw new ApiError(400, "Game has not started or is already finished.");
+    }
+
+    if (room.game.turnState !== "selecting") {
+      throw new ApiError(400, "Cannot spin the bottle. A turn is currently in progress.");
+    }
+
+    // Select a random player from players list
+    const playersCount = room.players.length;
+    const randomIndex = Math.floor(Math.random() * playersCount);
+    const selectedPlayer = room.players[randomIndex];
+
+    room.game.currentPlayerId = selectedPlayer.userId;
+    room.game.turnState = "choosing_type";
+    room.game.selectedType = null;
+    room.game.currentQuestion = { id: null, text: null, type: null };
+
+    await room.save();
+    return room;
+  }
+
+  static async chooseTruthOrDare(code, userId, type) {
+    const room = await this.findByCode(code);
+    if (!room) {
+      throw new ApiError(404, "Room not found.");
+    }
+
+    if (room.game.status !== "playing") {
+      throw new ApiError(400, "Game is not in progress.");
+    }
+
+    if (room.game.currentPlayerId !== userId.toString()) {
+      throw new ApiError(403, "It is not your turn to choose.");
+    }
+
+    if (room.game.turnState !== "choosing_type") {
+      throw new ApiError(400, "You cannot choose Truth/Dare at this point in the game.");
+    }
+
+    if (type !== "truth" && type !== "dare") {
+      throw new ApiError(400, "Invalid type. Must be 'truth' or 'dare'.");
+    }
+
+    const STATIC_QUESTIONS = {
+      truth: [
+        { id: "t1", text: "What is your biggest secret?" },
+        { id: "t2", text: "Have you ever lied to anyone in this room?" },
+        { id: "t3", text: "What is the most embarrassing thing you've ever done?" },
+        { id: "t4", text: "What is your biggest fear?" },
+        { id: "t5", text: "Who was your first crush?" }
+      ],
+      dare: [
+        { id: "d1", text: "Do 10 pushups." },
+        { id: "d2", text: "Sing a song out loud." },
+        { id: "d3", text: "Send a silly selfie to the chat." },
+        { id: "d4", text: "Tell a funny joke." },
+        { id: "d5", text: "Do a funny dance for 30 seconds." }
+      ]
+    };
+
+    const questionsList = STATIC_QUESTIONS[type];
+    const randomIndex = Math.floor(Math.random() * questionsList.length);
+    const chosenQuestion = questionsList[randomIndex];
+
+    room.game.selectedType = type;
+    room.game.currentQuestion = {
+      id: chosenQuestion.id,
+      text: chosenQuestion.text,
+      type
+    };
+    room.game.turnState = "answering";
+
+    await room.save();
+    return room;
+  }
+
+  static async submitTurnOutcome(code, userId, outcome) {
+    const room = await this.findByCode(code);
+    if (!room) {
+      throw new ApiError(404, "Room not found.");
+    }
+
+    if (room.game.status !== "playing") {
+      throw new ApiError(400, "Game is not in progress.");
+    }
+
+    if (room.game.currentPlayerId !== userId.toString()) {
+      throw new ApiError(403, "It is not your turn to submit.");
+    }
+
+    if (room.game.turnState !== "answering") {
+      throw new ApiError(400, "Cannot submit turn outcome at this point in the game.");
+    }
+
+    if (outcome !== "completed" && outcome !== "skipped") {
+      throw new ApiError(400, "Invalid outcome. Must be 'completed' or 'skipped'.");
+    }
+
+    // Award score if completed
+    if (outcome === "completed") {
+      const activePlayer = room.players.find((p) => p.userId === userId.toString());
+      if (activePlayer) {
+        activePlayer.score += 10;
+      }
+    }
+
+    // Move to next turn
+    room.game.currentRound += 1;
+    room.game.turnState = "selecting";
+    room.game.currentPlayerId = "";
+    room.game.selectedType = null;
+    room.game.currentQuestion = { id: null, text: null, type: null };
+
+    await room.save();
+    return room;
+  }
+
+  static async endGame(code, hostUserId) {
+    const room = await this.findByCode(code);
+    if (!room) {
+      throw new ApiError(404, "Room not found.");
+    }
+
+    if (room.hostId !== hostUserId.toString()) {
+      throw new ApiError(403, "Only the host can end the game.");
+    }
+
+    if (room.status !== "playing") {
+      throw new ApiError(400, "Game is not currently active.");
+    }
+
+    // Determine winner
+    let highestScore = -1;
+    let winnerId = null;
+
+    room.players.forEach((p) => {
+      if (p.score > highestScore) {
+        highestScore = p.score;
+        winnerId = p.userId;
+      }
+    });
+
+    room.status = "finished";
+    room.game.status = "finished";
+    room.game.winnerId = winnerId;
+
+    await room.save();
     return room;
   }
 }

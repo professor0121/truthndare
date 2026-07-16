@@ -61,7 +61,41 @@ const roomSchema = new Schema(
       enum: ["lobby", "playing", "finished"],
       default: "lobby"
     },
-    players: [roomPlayerSchema]
+    players: [roomPlayerSchema],
+    game: {
+      status: {
+        type: String,
+        enum: ["lobby", "playing", "finished"],
+        default: "lobby"
+      },
+      currentRound: {
+        type: Number,
+        default: 0
+      },
+      currentPlayerId: {
+        type: String,
+        default: ""
+      },
+      turnState: {
+        type: String,
+        enum: ["selecting", "choosing_type", "answering", "completed", "skipped"],
+        default: "selecting"
+      },
+      selectedType: {
+        type: String,
+        enum: ["truth", "dare", null],
+        default: null
+      },
+      currentQuestion: {
+        id: { type: String, default: null },
+        text: { type: String, default: null },
+        type: { type: String, default: null }
+      },
+      winnerId: {
+        type: String,
+        default: null
+      }
+    }
   },
   {
     timestamps: true
