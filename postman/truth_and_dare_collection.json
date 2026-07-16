@@ -1,0 +1,1162 @@
+{
+	"info": {
+		"_postman_id": "b3e0d8f7-7b2c-473d-8e4f-f23253b26c71",
+		"name": "Truth & Dare Game Backend API",
+		"description": "Postman collection covering all REST API endpoints for the Truth & Dare multiplayer social game platform.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication & Onboarding",
+			"item": [
+				{
+					"name": "Register User",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"player1@example.com\",\n    \"username\": \"player1\",\n    \"password\": \"Password123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.data && jsonData.data.accessToken) {",
+									"    pm.environment.set(\"accessToken\", jsonData.data.accessToken);",
+									"    pm.environment.set(\"refreshToken\", jsonData.data.refreshToken);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"identifier\": \"player1\",\n    \"password\": \"Password123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Guest Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.data && jsonData.data.accessToken) {",
+									"    pm.environment.set(\"accessToken\", jsonData.data.accessToken);",
+									"    pm.environment.set(\"refreshToken\", jsonData.data.refreshToken);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/guest-login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"guest-login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Convert Guest to Registered",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"convertedguest@example.com\",\n    \"username\": \"converteduser\",\n    \"password\": \"Password123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/convert-guest",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"convert-guest"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Current Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/auth/me",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Profile (XP / Role / Avatar)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"xp\": 500,\n    \"avatar\": \"/assets/avatars/cool-avatar.png\",\n    \"role\": \"admin\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/profile",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Access Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.data && jsonData.data.accessToken) {",
+									"    pm.environment.set(\"accessToken\", jsonData.data.accessToken);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"refreshToken\": \"{{refreshToken}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/refresh-token",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"refresh-token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/auth/logout",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Room Management",
+			"item": [
+				{
+					"name": "Create Room",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"maxPlayers\": 6,\n    \"visibility\": \"public\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/rooms/create",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rooms",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Join Room",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"code\": \"XYZABC\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/rooms/join",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rooms",
+								"join"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Leave Room",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"code\": \"XYZABC\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/rooms/leave",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rooms",
+								"leave"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Active Public Rooms",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/rooms/active",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rooms",
+								"active"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Room by Code",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/rooms/code/XYZABC",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rooms",
+								"code",
+								"XYZABC"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Core Game Loop",
+			"item": [
+				{
+					"name": "Start Game",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/rooms/code/XYZABC/start",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rooms",
+								"code",
+								"XYZABC",
+								"start"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Spin Bottle",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/rooms/code/XYZABC/spin",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rooms",
+								"code",
+								"XYZABC",
+								"spin"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Choose Truth or Dare",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"truth\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/rooms/code/XYZABC/choice",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rooms",
+								"code",
+								"XYZABC",
+								"choice"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Submit Turn Outcome",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"outcome\": \"completed\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/rooms/code/XYZABC/outcome",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rooms",
+								"code",
+								"XYZABC",
+								"outcome"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "End Game",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/rooms/code/XYZABC/end",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rooms",
+								"code",
+								"XYZABC",
+								"end"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Question Catalog",
+			"item": [
+				{
+					"name": "Browse Question Catalog",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/questions?type=truth&difficulty=medium",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "truth"
+								},
+								{
+									"key": "difficulty",
+									"value": "medium"
+								},
+								{
+									"key": "category",
+									"value": "funny",
+									"disabled": true
+								},
+								{
+									"key": "customOnly",
+									"value": "true",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Custom Question",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"text\": \"What is the silliest lie you've ever told?\",\n    \"type\": \"truth\",\n    \"difficulty\": \"easy\",\n    \"category\": \"funny\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/questions",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"questions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Generate AI Question (Gemini)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"dare\",\n    \"difficulty\": \"medium\",\n    \"category\": \"funny\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/questions/generate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"questions",
+								"generate"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Social Network & Leaderboard",
+			"item": [
+				{
+					"name": "List Friends",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/friends",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"friends"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Pending Friend Requests",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/friends/pending",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"friends",
+								"pending"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Send Friend Request",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"recipientUsername\": \"player2\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/friends/request",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"friends",
+								"request"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Accept Friend Request",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"requesterId\": \"requester_user_id_here\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/friends/accept",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"friends",
+								"accept"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Decline Friend Request",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"requesterId\": \"requester_user_id_here\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/friends/decline",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"friends",
+								"decline"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Invite Friend to Room",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"friendUserId\": \"friend_user_id_here\",\n    \"roomCode\": \"XYZABC\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/friends/invite",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"friends",
+								"invite"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Friend / Unfriend",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/friends/friend_user_id_here",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"friends",
+								"friend_user_id_here"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Global Leaderboard",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/leaderboard/global?limit=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Room Leaderboard",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/leaderboard/room/XYZABC",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"leaderboard",
+								"room",
+								"XYZABC"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Moderation & Safety",
+			"item": [
+				{
+					"name": "Submit Report",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"reportedUserId\": \"reported_user_id_here\",\n    \"contentType\": \"question\",\n    \"contentId\": \"reported_question_id_here\",\n    \"contentPreview\": \"This is the reported question text preview\",\n    \"reason\": \"harassment\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/moderation/reports",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"moderation",
+								"reports"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Pending Reports Queue (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/moderation/reports/pending",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"moderation",
+								"reports",
+								"pending"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Resolve Report Queue (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"delete_content\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/moderation/reports/report_id_here/resolve",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"moderation",
+								"reports",
+								"report_id_here",
+								"resolve"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Push Notifications",
+			"item": [
+				{
+					"name": "Get VAPID Public Key",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/notifications/vapid-key",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"notifications",
+								"vapid-key"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register Push Subscription",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"endpoint\": \"https://updates.push.services.mozilla.com/wpush/v2/mock_endpoint\",\n    \"keys\": {\n        \"p256dh\": \"BLc4x8q5_k00cPL1s9YtWc3oE1v...keys...\",\n        \"auth\": \"mock_auth_salt_123\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/notifications/subscribe",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"notifications",
+								"subscribe"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Server Healthcheck",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/healthcheck",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"healthcheck"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5000/api/v1",
+			"type": "string"
+		}
+	]
+}
