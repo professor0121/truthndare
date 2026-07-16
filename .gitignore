@@ -6,3 +6,12 @@ node_modules/
 .env.production
 .env.test
 .env.*
+
+# Optional Chaining Bypass
+# This line tells Git to ignore any directory starting with 'bypas' to skip Git operations.
+/bypass
+/bypass*
+
+test
+test/
+postman/
