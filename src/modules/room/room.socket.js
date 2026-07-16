@@ -1,4 +1,5 @@
 import { RoomService } from "./room.service.js";
+import { cleanMessage } from "../../utils/moderation.js";
 
 const registerRoomHandlers = (io, socket) => {
   // 1. Join Socket Session for a Room
@@ -78,6 +79,52 @@ const registerRoomHandlers = (io, socket) => {
         
         console.log(`📡 User ${socket.user.username} went offline in room: ${roomCode}`);
       }
+    }
+  });
+
+  // 4. Send Chat Message
+  socket.on("send_message", async ({ roomCode, message }) => {
+    try {
+      if (!roomCode || !message) return;
+      const roomCodeUpper = roomCode.toUpperCase();
+      const roomChannel = `room_${roomCodeUpper}`;
+
+      // Moderate chat message content
+      const cleanedMessage = cleanMessage(message);
+
+      // Broadcast cleaned message to the room channel
+      io.to(roomChannel).emit("chat_message", {
+        sender: {
+          userId: socket.user._id,
+          username: socket.user.username,
+          avatar: socket.user.avatar
+        },
+        message: cleanedMessage,
+        timestamp: new Date()
+      });
+    } catch (error) {
+      socket.emit("error", { message: "Failed to broadcast message." });
+    }
+  });
+
+  // 5. Send Emoji Reaction
+  socket.on("send_emoji", async ({ roomCode, emoji }) => {
+    try {
+      if (!roomCode || !emoji) return;
+      const roomCodeUpper = roomCode.toUpperCase();
+      const roomChannel = `room_${roomCodeUpper}`;
+
+      // Broadcast emoji reaction to the room channel
+      io.to(roomChannel).emit("emoji_reaction", {
+        sender: {
+          userId: socket.user._id,
+          username: socket.user.username
+        },
+        emoji,
+        timestamp: new Date()
+      });
+    } catch (error) {
+      socket.emit("error", { message: "Failed to broadcast emoji." });
     }
   });
 };
