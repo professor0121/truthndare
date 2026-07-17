@@ -43,24 +43,24 @@ export default function QuestionCard({ type, text, visible }: QuestionCardProps)
         className="relative w-full h-full duration-700 [transform-style:preserve-3d]"
       >
         {/* Card BACK (Face Down - Mystery view) */}
-        <div className="absolute inset-0 w-full h-full rounded-2xl glass-card border border-neon-purple/40 glow-purple flex flex-col items-center justify-center p-6 [backface-visibility:hidden]">
+        <div className="absolute inset-0 w-full h-full rounded-3xl glass-card border border-neon-purple/40 glow-purple flex flex-col items-center justify-center p-6 [backface-visibility:hidden]">
           <div className="w-16 h-16 rounded-full bg-zinc-950 border border-zinc-800 flex items-center justify-center mb-3">
             <Sparkles className="w-8 h-8 text-neon-purple animate-pulse" />
           </div>
-          <span className="text-sm font-bold uppercase tracking-widest text-zinc-400">
+          <span className="text-sm font-headline font-bold uppercase tracking-widest text-zinc-400">
             Awaiting Choice...
           </span>
-          <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest mt-1">
+          <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest mt-1.5 font-mono">
             Truth or Dare
           </span>
         </div>
 
         {/* Card FRONT (Face Up - Display Question) */}
         <div 
-          className={`absolute inset-0 w-full h-full rounded-2xl [backface-visibility:hidden] [transform:rotateY(180deg)] p-6 flex flex-col justify-between overflow-hidden border ${
+          className={`absolute inset-0 w-full h-full rounded-3xl [backface-visibility:hidden] [transform:rotateY(180deg)] p-6 flex flex-col justify-between overflow-hidden border ${
             isTruth
-              ? "bg-gradient-to-br from-indigo-950/80 via-zinc-950/90 to-zinc-950 border-neon-blue/50 shadow-[0_0_20px_rgba(6,182,212,0.3)]"
-              : "bg-gradient-to-br from-rose-950/80 via-zinc-950/90 to-zinc-950 border-neon-pink/50 shadow-[0_0_20px_rgba(236,72,153,0.3)]"
+              ? "bg-gradient-to-br from-indigo-950/90 via-zinc-950/95 to-background border-neon-blue/50 shadow-[0_0_20px_rgba(0,229,255,0.3)]"
+              : "bg-gradient-to-br from-rose-950/90 via-zinc-950/95 to-background border-neon-pink/50 shadow-[0_0_20px_rgba(255,45,85,0.3)]"
           }`}
         >
           {/* Holographic background line */}
@@ -69,16 +69,16 @@ export default function QuestionCard({ type, text, visible }: QuestionCardProps)
           {/* Card Header */}
           <div className="flex items-center justify-between z-10">
             <span
-              className={`text-xs font-black tracking-widest uppercase px-2.5 py-1 rounded ${
+              className={`text-[10px] font-headline font-black tracking-widest uppercase px-2.5 py-1 rounded ${
                 isTruth
-                  ? "bg-neon-blue/20 text-neon-blue border border-neon-blue/30"
-                  : "bg-neon-pink/20 text-neon-pink border border-neon-pink/30"
+                  ? "bg-neon-blue/20 text-neon-cyan border border-neon-blue/30 text-glow-blue"
+                  : "bg-neon-pink/20 text-neon-pink border border-neon-pink/30 text-glow-pink"
               }`}
             >
               {isTruth ? "Truth" : "Dare"}
             </span>
-            <div className="flex items-center gap-1 text-[10px] text-zinc-500 font-bold uppercase">
-              <Sparkles className="w-3.5 h-3.5 text-neon-purple" />
+            <div className="flex items-center gap-1.5 text-[10px] text-zinc-500 font-bold uppercase">
+              <Sparkles className="w-3.5 h-3.5 text-neon-purple animate-pulse" />
               <span>AI Generated</span>
             </div>
           </div>
@@ -91,7 +91,7 @@ export default function QuestionCard({ type, text, visible }: QuestionCardProps)
           </div>
 
           {/* Card Footer */}
-          <div className="flex items-center justify-between text-[10px] text-zinc-500 font-semibold z-10">
+          <div className="flex items-center justify-between text-[10px] text-zinc-500 font-bold uppercase tracking-wider font-mono z-10">
             <span>Points: +10 pts</span>
             <div className="flex items-center gap-1">
               <AlertTriangle className="w-3.5 h-3.5 text-yellow-500" />
@@ -103,3 +103,4 @@ export default function QuestionCard({ type, text, visible }: QuestionCardProps)
     </div>
   );
 }
+

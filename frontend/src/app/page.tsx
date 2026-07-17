@@ -8,6 +8,9 @@ import { setCredentials, setLoading, setError } from "../store/authSlice";
 import { api } from "../lib/api";
 import gsap from "gsap";
 import { Lock, User, Mail, Play, Sparkles, Gamepad2, AlertCircle } from "lucide-react";
+import Button from "../components/ui/Button";
+import Card from "../components/ui/Card";
+import Input from "../components/ui/Input";
 
 export default function Home() {
   const router = useRouter();
@@ -109,7 +112,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col flex-1 items-center justify-center min-h-screen px-4 bg-radial from-zinc-950 via-black to-zinc-950 relative overflow-hidden">
+    <div className="flex flex-col flex-1 items-center justify-center min-h-screen px-4 bg-radial from-dark-surface via-background to-background relative overflow-hidden">
       {/* Decorative Grid Background */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none" />
 
@@ -133,17 +136,18 @@ export default function Home() {
         </div>
 
         {/* Auth Card Container */}
-        <div
+        <Card
           ref={containerRef}
-          className="w-full glass-card p-8 rounded-2xl glow-purple relative"
+          glow="purple"
+          className="w-full p-8 relative"
         >
           {/* Tab Selector */}
-          <div className="flex bg-black/40 p-1.5 rounded-lg mb-8 border border-zinc-800">
+          <div className="flex bg-black/40 p-1.5 rounded-xl mb-8 border border-zinc-800/60">
             <button
               onClick={() => { setActiveTab("login"); dispatch(setError(null)); }}
-              className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all ${
+              className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all cursor-pointer ${
                 activeTab === "login"
-                  ? "bg-neon-purple text-white shadow-[0_0_10px_rgba(168,85,247,0.5)]"
+                  ? "bg-neon-purple text-white shadow-[0_0_10px_rgba(188,19,254,0.5)]"
                   : "text-zinc-400 hover:text-zinc-200"
               }`}
             >
@@ -151,9 +155,9 @@ export default function Home() {
             </button>
             <button
               onClick={() => { setActiveTab("register"); dispatch(setError(null)); }}
-              className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all ${
+              className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all cursor-pointer ${
                 activeTab === "register"
-                  ? "bg-neon-purple text-white shadow-[0_0_10px_rgba(168,85,247,0.5)]"
+                  ? "bg-neon-purple text-white shadow-[0_0_10px_rgba(188,19,254,0.5)]"
                   : "text-zinc-400 hover:text-zinc-200"
               }`}
             >
@@ -161,13 +165,13 @@ export default function Home() {
             </button>
             <button
               onClick={() => { setActiveTab("guest"); dispatch(setError(null)); }}
-              className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all ${
+              className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all cursor-pointer ${
                 activeTab === "guest"
-                  ? "bg-neon-purple text-white shadow-[0_0_10px_rgba(168,85,247,0.5)]"
+                  ? "bg-neon-purple text-white shadow-[0_0_10px_rgba(188,19,254,0.5)]"
                   : "text-zinc-400 hover:text-zinc-200"
               }`}
             >
-              Guest Play
+              Guest
             </button>
           </div>
 
@@ -182,111 +186,76 @@ export default function Home() {
           {/* Login Form */}
           {activeTab === "login" && (
             <form onSubmit={handleLogin} className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-xs uppercase tracking-wider text-zinc-400 font-semibold">
-                  Username or Email
-                </label>
-                <div className="relative">
-                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-                  <input
-                    type="text"
-                    required
-                    placeholder="Enter email or username"
-                    value={identifier}
-                    onChange={(e) => setIdentifier(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 rounded-lg glass-input text-sm text-white"
-                  />
-                </div>
-              </div>
+              <Input
+                type="text"
+                required
+                label="Username or Email"
+                icon={<User className="w-4 h-4 text-zinc-500" />}
+                placeholder="Enter email or username"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+              />
 
-              <div className="space-y-1">
-                <label className="text-xs uppercase tracking-wider text-zinc-400 font-semibold">
-                  Password
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-                  <input
-                    type="password"
-                    required
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 rounded-lg glass-input text-sm text-white"
-                  />
-                </div>
-              </div>
+              <Input
+                type="password"
+                required
+                label="Password"
+                icon={<Lock className="w-4 h-4 text-zinc-500" />}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
 
-              <button
+              <Button
                 type="submit"
-                disabled={loading}
-                className="w-full py-3 mt-4 text-sm font-bold uppercase tracking-wider text-white bg-gradient-to-r from-neon-purple to-neon-pink rounded-lg hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50 select-none cursor-pointer"
+                loading={loading}
+                className="w-full mt-4"
               >
-                {loading ? "Authenticating..." : "Connect Session"}
-              </button>
+                Connect Session
+              </Button>
             </form>
           )}
 
           {/* Register Form */}
           {activeTab === "register" && (
             <form onSubmit={handleRegister} className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-xs uppercase tracking-wider text-zinc-400 font-semibold">
-                  Email Address
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-                  <input
-                    type="email"
-                    required
-                    placeholder="user@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 rounded-lg glass-input text-sm text-white"
-                  />
-                </div>
-              </div>
+              <Input
+                type="email"
+                required
+                label="Email Address"
+                icon={<Mail className="w-4 h-4 text-zinc-500" />}
+                placeholder="user@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
 
-              <div className="space-y-1">
-                <label className="text-xs uppercase tracking-wider text-zinc-400 font-semibold">
-                  Desired Username
-                </label>
-                <div className="relative">
-                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-                  <input
-                    type="text"
-                    required
-                    placeholder="CyberNinja"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 rounded-lg glass-input text-sm text-white"
-                  />
-                </div>
-              </div>
+              <Input
+                type="text"
+                required
+                label="Desired Username"
+                icon={<User className="w-4 h-4 text-zinc-500" />}
+                placeholder="CyberNinja"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
 
-              <div className="space-y-1">
-                <label className="text-xs uppercase tracking-wider text-zinc-400 font-semibold">
-                  Password
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-                  <input
-                    type="password"
-                    required
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 rounded-lg glass-input text-sm text-white"
-                  />
-                </div>
-              </div>
+              <Input
+                type="password"
+                required
+                label="Password"
+                icon={<Lock className="w-4 h-4 text-zinc-500" />}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
 
-              <button
+              <Button
                 type="submit"
-                disabled={loading}
-                className="w-full py-3 mt-4 text-sm font-bold uppercase tracking-wider text-white bg-gradient-to-r from-neon-purple to-neon-pink rounded-lg hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50 select-none cursor-pointer"
+                loading={loading}
+                className="w-full mt-4"
               >
-                {loading ? "Registering..." : "Create Account"}
-              </button>
+                Create Account
+              </Button>
             </form>
           )}
 
@@ -297,17 +266,18 @@ export default function Home() {
                 Want to play immediately? Join as a Guest player. You'll receive a random avatar and can convert to a full account later without losing your scores.
               </p>
               
-              <button
+              <Button
                 onClick={handleGuestLogin}
-                disabled={loading}
-                className="w-full py-4 flex items-center justify-center gap-2 text-sm font-bold uppercase tracking-wider text-white bg-gradient-to-r from-neon-blue to-neon-cyan rounded-lg hover:brightness-110 active:scale-[0.98] transition-all glow-blue select-none cursor-pointer disabled:opacity-50"
+                loading={loading}
+                variant="valorant"
+                className="w-full py-3.5 flex items-center justify-center gap-2"
               >
-                <Play className="w-5 h-5 fill-current" />
-                {loading ? "Initializing..." : "Enter Arena"}
-              </button>
+                <Play className="w-4.5 h-4.5 fill-current" />
+                Enter Arena
+              </Button>
             </div>
           )}
-        </div>
+        </Card>
 
         {/* Footer Info */}
         <p className="mt-8 text-xs text-zinc-500 select-none flex items-center gap-1.5">
@@ -317,3 +287,4 @@ export default function Home() {
     </div>
   );
 }
+

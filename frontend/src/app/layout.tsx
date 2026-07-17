@@ -1,20 +1,9 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import { Providers } from "../components/Providers";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: "Truth & Dare | Cyber Arena",
+  title: "Truth & Dare | Obsidian Neon Arena",
   description: "Play Truth and Dare in real-time with AI-powered questions and full audio chat lobbies.",
 };
 
@@ -24,11 +13,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col bg-black text-white antialiased selection:bg-purple-600 selection:text-white">
+    <html lang="en" className="h-full antialiased font-sans">
+      <body className="min-h-full flex flex-col bg-background text-foreground antialiased selection:bg-neon-purple selection:text-white">
         <Providers>{children}</Providers>
       </body>
     </html>

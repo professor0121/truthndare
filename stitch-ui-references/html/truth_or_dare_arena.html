@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NEON ARENA | Truth or Dare</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;family=Montserrat:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+        .neon-glow-primary {
+            box-shadow: 0 0 20px rgba(235, 178, 255, 0.3);
+        }
+        .neon-border-bottom {
+            border-bottom: 2px solid transparent;
+            transition: border-color 0.3s ease;
+        }
+        .neon-border-bottom:focus-within {
+            border-bottom-color: #00daf3;
+        }
+        .diagonal-cut {
+            clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(1.2); opacity: 0; }
+        }
+        .speaking-indicator {
+            position: relative;
+        }
+        .speaking-indicator::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border: 2px solid #ebb2ff;
+            border-radius: 9999px;
+            animation: pulse-ring 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        .player-circle-container {
+            perspective: 1000px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-container": "#130002",
+                        "on-tertiary-fixed": "#40000c",
+                        "inverse-primary": "#9800d0",
+                        "on-primary-fixed": "#320047",
+                        "surface-container-lowest": "#0e0d13",
+                        "on-error-container": "#ffdad6",
+                        "on-error": "#690005",
+                        "secondary-container": "#00e3fd",
+                        "primary-container": "#bc13fe",
+                        "surface-container": "#201f25",
+                        "on-background": "#e5e1ea",
+                        "outline-variant": "#504254",
+                        "primary-fixed": "#f8d8ff",
+                        "tertiary-fixed-dim": "#ffb3b5",
+                        "inverse-surface": "#e5e1ea",
+                        "surface-container-high": "#2b2930",
+                        "surface-bright": "#3a383f",
+                        "error": "#ffb4ab",
+                        "on-secondary-fixed": "#001f24",
+                        "on-primary-fixed-variant": "#74009f",
+                        "on-secondary-container": "#00616d",
+                        "surface-variant": "#35343b",
+                        "primary-fixed-dim": "#ebb2ff",
+                        "primary": "#ebb2ff",
+                        "outline": "#9d8ba0",
+                        "tertiary-container": "#e91648",
+                        "error-container": "#93000a",
+                        "inverse-on-surface": "#312f36",
+                        "background": "#141319",
+                        "surface-dim": "#141319",
+                        "on-secondary": "#00363d",
+                        "on-primary-container": "#ffffff",
+                        "on-tertiary": "#680019",
+                        "on-tertiary-fixed-variant": "#920027",
+                        "secondary-fixed-dim": "#00daf3",
+                        "surface-container-low": "#1c1b21",
+                        "on-secondary-fixed-variant": "#004f58",
+                        "tertiary": "#ffb3b5",
+                        "on-surface": "#e5e1ea",
+                        "surface": "#141319",
+                        "secondary": "#bdf4ff",
+                        "on-primary": "#520072",
+                        "surface-tint": "#ebb2ff",
+                        "on-surface-variant": "#d4c0d7",
+                        "secondary-fixed": "#9cf0ff",
+                        "tertiary-fixed": "#ffdada",
+                        "surface-container-highest": "#35343b"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "24px",
+                        "lg": "48px",
+                        "xl": "80px",
+                        "xs": "4px",
+                        "gutter": "24px",
+                        "margin-mobile": "16px",
+                        "margin-desktop": "40px",
+                        "sm": "12px",
+                        "base": "8px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Montserrat"],
+                        "label-caps": ["Montserrat"],
+                        "display-lg-mobile": ["Montserrat"],
+                        "body-lg": ["Inter"],
+                        "stats-code": ["JetBrains Mono"],
+                        "body-md": ["Inter"],
+                        "display-lg": ["Montserrat"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                        "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                        "display-lg-mobile": ["32px", {"lineHeight": "1.2", "fontWeight": "800"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "stats-code": ["14px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background min-h-screen overflow-hidden selection:bg-primary selection:text-on-primary">
+<!-- Global Background Shader -->
+<!-- STITCH_SHADER_START:ANIMATION_1 class="fixed inset-0 w-full h-full opacity-40 pointer-events-none" -->
+<div class="fixed inset-0 w-full h-full opacity-40 pointer-events-none" style="display:block;">
+<canvas id="shader-canvas-ANIMATION_1" style="display:block;width:100%;height:100%"></canvas>
+<script>
+(function() {
+  const canvas = document.getElementById('shader-canvas-ANIMATION_1');
+
+  // Sync the WebGL drawing-buffer size with the CSS-driven layout size.
+  // This fires on initial layout and whenever the element is resized.
+  function syncSize() {
+    const w = canvas.clientWidth  || 1280;
+    const h = canvas.clientHeight || 720;
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width  = w;
+      canvas.height = h;
+    }
+  }
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(syncSize).observe(canvas);
+  }
+  syncSize();
+
+  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  if (!gl) return;
+  const vs = `attribute vec2 a_position;
+varying vec2 v_texCoord;
+void main() {
+  v_texCoord = a_position * 0.5 + 0.5;
+  gl_Position = vec4(a_position, 0.0, 1.0);
+}`;
+  const fs = `precision highp float;
+varying vec2 v_texCoord;
+uniform float u_time;
+uniform vec2 u_resolution;
+
+void main() {
+    vec2 uv = v_texCoord;
+    
+    // Background color
+    vec3 color1 = vec3(0.043, 0.039, 0.063); // Deep Obsidian
+    vec3 color2 = vec3(0.12, 0.05, 0.25);   // Deep Purple
+    
+    // Animated gradient
+    float noise = sin(uv.x * 2.0 + u_time * 0.5) * cos(uv.y * 2.0 - u_time * 0.3);
+    vec3 bg = mix(color1, color2, uv.y + noise * 0.2);
+    
+    // Glowing orbs
+    vec2 p1 = vec2(0.2 + 0.1 * sin(u_time * 0.4), 0.3 + 0.1 * cos(u_time * 0.5));
+    float d1 = length(uv - p1);
+    vec3 orb1 = vec3(0.5, 0.0, 1.0) * (0.05 / (d1 + 0.1));
+    
+    vec2 p2 = vec2(0.8 + 0.1 * cos(u_time * 0.6), 0.7 + 0.1 * sin(u_time * 0.3));
+    float d2 = length(uv - p2);
+    vec3 orb2 = vec3(0.0, 0.6, 1.0) * (0.05 / (d2 + 0.1));
+    
+    gl_FragColor = vec4(bg + orb1 + orb2, 1.0);
+}`;
+  function cs(type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    return s;
+  }
+  const prog = gl.createProgram();
+  gl.attachShader(prog, cs(gl.VERTEX_SHADER, vs));
+  gl.attachShader(prog, cs(gl.FRAGMENT_SHADER, fs));
+  gl.linkProgram(prog);
+  gl.useProgram(prog);
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+  const pos = gl.getAttribLocation(prog, 'a_position');
+  gl.enableVertexAttribArray(pos);
+  gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
+  const uTime = gl.getUniformLocation(prog, 'u_time');
+  const uRes = gl.getUniformLocation(prog, 'u_resolution');
+  const uMouse = gl.getUniformLocation(prog, 'u_mouse');
+
+  // u_mouse is in pixel coordinates matching u_resolution (ShaderToy convention).
+  // Shaders that need normalized coords should use: u_mouse / u_resolution.
+  let mouse = { x: canvas.width / 2, y: canvas.height / 2 };
+  window.addEventListener('mousemove', (event) => {
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width && rect.height) {
+      const nx = (event.clientX - rect.left) / rect.width;
+      const ny = 1.0 - (event.clientY - rect.top) / rect.height;
+      mouse.x = nx * canvas.width;
+      mouse.y = ny * canvas.height;
+    }
+  });
+
+  function render(t) {
+    if (typeof ResizeObserver === 'undefined') syncSize();
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    if (uTime) gl.uniform1f(uTime, t * 0.001);
+    if (uRes) gl.uniform2f(uRes, canvas.width, canvas.height);
+    if (uMouse) gl.uniform2f(uMouse, mouse.x, mouse.y);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    requestAnimationFrame(render);
+  }
+  render(0);
+})();
+</script>
+</div>
+<!-- STITCH_SHADER_END:ANIMATION_1 -->
+<!-- Top Navigation Bar -->
+<nav class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-desktop h-16 bg-surface/60 backdrop-blur-[40px] border-b border-white/10 shadow-[0_0_30px_rgba(235,178,255,0.15)]">
+<div class="flex items-center gap-base">
+<span class="font-headline-md text-headline-md font-extrabold text-primary tracking-tighter">NEON ARENA</span>
+</div>
+<div class="hidden md:flex gap-lg">
+<a class="font-label-caps text-label-caps text-primary font-bold hover:bg-white/5 transition-colors px-4 py-2 rounded-lg" href="#">Lobbies</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant/70 hover:text-on-surface transition-colors px-4 py-2 rounded-lg" href="#">Leaderboard</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant/70 hover:text-on-surface transition-colors px-4 py-2 rounded-lg" href="#">Store</a>
+</div>
+<div class="flex items-center gap-md">
+<button class="material-symbols-outlined text-on-surface-variant hover:bg-white/5 p-2 rounded-full transition-colors active:scale-95">notifications</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:bg-white/5 p-2 rounded-full transition-colors active:scale-95">settings</button>
+<div class="w-10 h-10 rounded-full overflow-hidden border border-primary/30">
+<img class="w-full h-full object-cover" data-alt="A futuristic avatar portrait of a competitive gamer wearing sleek obsidian and neon purple cybernetic armor. The character has glowing blue cyber-eyes and a focused expression. High-fidelity cinematic lighting, dark atmospheric environment, 3D render style consistent with high-end gaming interfaces." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCds_tBtvMsng2Hx10_beGVOJau-vpHwOcNoqQHx0IiZnMVYVXre7U0uW5g-rkbO3iy7egG-iwNP4QONAzT-u6sjdk0sWiMr0FJp6XXWjkRUXUG6dD8CyOrcGot8Tb86W99_pvNNJ0Zuwt8Ph6yeiq7UJxw3d7O2B9A0TZoixeeD3-u2ZMF3bBvhfUHjhoUQsG4VMoyWkjcLIFKCD50pTEF4M6n7rjpjLNG1O5R4tKNRebAKZKXvfufEsC8_N-gFucFEVhPnfXIQ-Y"/>
+</div>
+</div>
+</nav>
+<!-- Sidebar (Lobbies & Stats) -->
+<aside class="fixed left-3 top-20 bottom-3 w-64 rounded-xl bg-surface-container/10 backdrop-blur-[40px] border border-white/10 shadow-xl hidden lg:flex flex-col p-md gap-4 z-40">
+<div class="mb-4">
+<div class="flex items-center gap-sm mb-2">
+<div class="w-12 h-12 glass-panel rounded-lg flex items-center justify-center border-primary/20">
+<span class="material-symbols-outlined text-primary text-3xl">military_tech</span>
+</div>
+<div>
+<p class="font-label-caps text-label-caps text-primary font-bold">Rank: Elite</p>
+<p class="text-[10px] text-on-surface-variant/60 font-stats-code">4,280 XP TO MASTER</p>
+</div>
+</div>
+<div class="w-full h-1 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-primary to-secondary w-[75%] animate-pulse"></div>
+</div>
+</div>
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-primary/20 to-secondary/20 text-on-primary-container border-r-2 border-primary transition-all" href="#">
+<span class="material-symbols-outlined">grid_view</span>
+<span class="font-label-caps text-label-caps">Home</span>
+</a>
+<a class="flex items-center gap-3 p-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-white/5 hover:translate-x-1 transition-all" href="#">
+<span class="material-symbols-outlined">sports_esports</span>
+<span class="font-label-caps text-label-caps">Lobbies</span>
+</a>
+<a class="flex items-center gap-3 p-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-white/5 hover:translate-x-1 transition-all" href="#">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="font-label-caps text-label-caps">Leaderboard</span>
+</a>
+<a class="flex items-center gap-3 p-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-white/5 hover:translate-x-1 transition-all" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-label-caps text-label-caps">Inventory</span>
+</a>
+<a class="flex items-center gap-3 p-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-white/5 hover:translate-x-1 transition-all" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-caps text-label-caps">Friends</span>
+</a>
+</nav>
+<button class="mt-auto diagonal-cut bg-gradient-to-br from-primary to-primary-container text-on-primary font-label-caps py-4 font-extrabold hover:scale-[1.02] transition-transform active:scale-95">
+            CREATE ROOM
+        </button>
+<div class="pt-4 border-t border-white/5 flex flex-col gap-1">
+<a class="flex items-center gap-3 p-2 text-on-surface-variant hover:text-on-surface text-sm" href="#">
+<span class="material-symbols-outlined text-lg">help</span> Help
+            </a>
+<a class="flex items-center gap-3 p-2 text-on-surface-variant hover:text-on-surface text-sm" href="#">
+<span class="material-symbols-outlined text-lg">logout</span> Logout
+            </a>
+</div>
+</aside>
+<!-- Main Game Canvas -->
+<main class="ml-0 lg:ml-72 mr-0 xl:mr-80 pt-20 pb-20 px-6 h-screen flex flex-col items-center justify-center relative">
+<!-- Center Arena -->
+<div class="relative w-full max-w-4xl aspect-square flex items-center justify-center player-circle-container">
+<!-- 3D Bottle Scene -->
+<div class="absolute inset-0 z-0 flex items-center justify-center pointer-events-none">
+<div class="w-[300px] h-[300px] relative">
+<!-- STITCH_THREEJS_START:ANIMATION_2 class="w-full h-full" -->
+<div class="w-full h-full" style="display:block;">
+<script src="https://ajax.googleapis.com/ajax/libs/threejs/r125/three.min.js"></script>
+<div id="threejs-container-ANIMATION_2" style="width:100%;height:100%"></div>
+<script>
+(function() {
+  const container = document.getElementById('threejs-container-ANIMATION_2');
+  const devicePixelRatio = window.devicePixelRatio || 1;
+  const scene = new THREE.Scene();
+const width = container.clientWidth || window.innerWidth;
+const height = container.clientHeight || window.innerHeight;
+const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+renderer.setSize(width, height);
+container.appendChild(renderer.domElement);
+
+// Bottle Geometry - Combined shapes to form a realistic wine/soda bottle
+const bottleGroup = new THREE.Group();
+
+// Body
+const bodyGeom = new THREE.CylinderGeometry(0.8, 0.8, 4, 32);
+const bodyMat = new THREE.MeshPhongMaterial({ 
+    color: 0x221144, 
+    transparent: true, 
+    opacity: 0.7, 
+    shininess: 100,
+    reflectivity: 1
+});
+const body = new THREE.Mesh(bodyGeom, bodyMat);
+bottleGroup.add(body);
+
+// Shoulder
+const shoulderGeom = new THREE.SphereGeometry(0.8, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+const shoulder = new THREE.Mesh(shoulderGeom, bodyMat);
+shoulder.position.y = 2;
+bottleGroup.add(shoulder);
+
+// Neck
+const neckGeom = new THREE.CylinderGeometry(0.3, 0.3, 1.5, 32);
+const neck = new THREE.Mesh(neckGeom, bodyMat);
+neck.position.y = 2.75;
+bottleGroup.add(neck);
+
+// Cap
+const capGeom = new THREE.CylinderGeometry(0.35, 0.35, 0.4, 32);
+const capMat = new THREE.MeshPhongMaterial({ color: 0xccaa00, shininess: 100 });
+const cap = new THREE.Mesh(capGeom, capMat);
+cap.position.y = 3.5;
+bottleGroup.add(cap);
+
+// Glow Platform
+const platformGeom = new THREE.CircleGeometry(2, 64);
+const platformMat = new THREE.MeshBasicMaterial({ 
+    color: 0x8800ff, 
+    transparent: true, 
+    opacity: 0.3, 
+    side: THREE.DoubleSide 
+});
+const platform = new THREE.Mesh(platformGeom, platformMat);
+platform.rotation.x = Math.PI / 2;
+platform.position.y = -2.1;
+scene.add(platform);
+
+bottleGroup.rotation.z = Math.PI / 2;
+scene.add(bottleGroup);
+
+// Lighting
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+scene.add(ambientLight);
+const pointLight = new THREE.PointLight(0x00ccff, 2, 50);
+pointLight.position.set(5, 5, 5);
+scene.add(pointLight);
+
+camera.position.z = 10;
+camera.position.y = 2;
+camera.lookAt(0, 0, 0);
+
+let isSpinning = false;
+let spinSpeed = 0;
+let targetRotation = 0;
+
+function animate() {
+    requestAnimationFrame(animate);
+    
+    if (!isSpinning) {
+        // Floating idle animation
+        bottleGroup.position.y = Math.sin(Date.now() * 0.002) * 0.2;
+        bottleGroup.rotation.y += 0.01;
+    } else {
+        bottleGroup.rotation.y += spinSpeed;
+        spinSpeed *= 0.98; // Friction
+        if (spinSpeed < 0.01) {
+            isSpinning = false;
+            spinSpeed = 0;
+            // Dispatch event for UI
+            window.dispatchEvent(new CustomEvent('bottleStopped', { detail: { angle: bottleGroup.rotation.y } }));
+        }
+    }
+    
+    renderer.render(scene, camera);
+}
+
+animate();
+
+window.addEventListener('resize', () => {
+    const w = container.clientWidth || window.innerWidth;
+    const h = container.clientHeight || window.innerHeight;
+    renderer.setSize(w, h);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+});
+
+// Communication with UI
+window.addEventListener('spinBottle', () => {
+    isSpinning = true;
+    spinSpeed = 0.5 + Math.random() * 0.5;
+});
+})();
+</script>
+</div>
+<!-- STITCH_THREEJS_END:ANIMATION_2 -->
+<!-- Visual Glow under bottle -->
+<div class="absolute inset-0 bg-primary/20 blur-[60px] rounded-full scale-50 animate-pulse"></div>
+</div>
+</div>
+<!-- Player Circle - 8 Players -->
+<!-- Player 1 (Top) -->
+<div class="absolute" style="transform: rotate(0deg) translateY(-280px) rotate(0deg);">
+<div class="glass-panel w-32 aspect-[3/4] rounded-xl overflow-hidden border-2 border-primary speaking-indicator">
+<div class="h-full relative">
+<img class="w-full h-full object-cover" data-alt="A focused digital creator livestreaming with a minimalist neon purple background. Soft volumetric lighting, 4k high definition camera quality, gaming chair visible in the periphery. Dark obsidian aesthetic with subtle glass-morphic UI overlays on the screen edges." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdyUkp88LpWrWESOXukNoa6xAgB1qqXyG7RvneeKoDCI9TPa9grlptW_l31Y-_eIbnL5U4yU5QxxFtiobTzY0nkjc0eLGcLwm8CCbh8keyAlXY3jy9KJs2X9crPsRmw9pDjbMsVFpg-hCdlzBX87-hA63ANz8HOqlu0fRnKXDmyvMx0DR3OZDz58thgOqHmWvL8NUlnzGsC_GYn58Zkl9X0CC16R5k_jXco7Amx74pCRwQsfRkogX8CUnBlWDSvkO4BYCA595gwpk"/>
+<div class="absolute bottom-0 inset-x-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+<p class="font-label-caps text-[10px] text-primary truncate">CYBER_KIND</p>
+<span class="text-[8px] font-stats-code text-secondary flex items-center gap-1"><span class="w-1 h-1 bg-secondary rounded-full"></span> MASTER</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Player 2 -->
+<div class="absolute" style="transform: rotate(45deg) translateY(-280px) rotate(-45deg);">
+<div class="glass-panel w-28 aspect-[3/4] rounded-xl overflow-hidden opacity-80 hover:opacity-100 transition-opacity">
+<div class="h-full relative">
+<img class="w-full h-full object-cover" data-alt="Competitive player in a dark room illuminated by a blue neon ring light. Professional streaming setup, crisp facial details, high-end digital aesthetic. Cinematic lighting with deep shadows and vibrant cyan highlights. Obsidian neon design system style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD3f_83T4lZOux-Rmg6gFA2kQfm3vqZxQSmlCsxLptdTipBuf4dZRGBRN4OZzmWuoro8yvZ9ZtcnsEm-yOvK643Xgzfm-EcLRKE3pSSu0BDhWzghzjTvZKcXgimNlbZkIyK0kXN7nThH-QW0E5AOYs7VC-B69TjBlTX0AH3b9VDZw5l-UOivy2aBe0109REBORGbFXQTBT5lKbII9sTjo5tSw-ZTDIWeuHucCjCfLYRFUUaN_PT3lYRUM5L_qPgCc7jRSUV43TqQj8"/>
+<div class="absolute bottom-0 inset-x-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+<p class="font-label-caps text-[10px] text-white/90 truncate">NOVA_PULSE</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Player 3 -->
+<div class="absolute" style="transform: rotate(90deg) translateY(-280px) rotate(-90deg);">
+<div class="glass-panel w-28 aspect-[3/4] rounded-xl overflow-hidden opacity-80">
+<div class="h-full relative bg-surface-container/50 flex flex-col items-center justify-center gap-2">
+<span class="material-symbols-outlined text-4xl text-on-surface-variant/20">person</span>
+<span class="text-[8px] font-label-caps text-on-surface-variant/40">WAITING...</span>
+</div>
+</div>
+</div>
+<!-- Player 4 -->
+<div class="absolute" style="transform: rotate(135deg) translateY(-280px) rotate(-135deg);">
+<div class="glass-panel w-28 aspect-[3/4] rounded-xl overflow-hidden opacity-80">
+<img class="w-full h-full object-cover" data-alt="High energy gamer with a colorful RGB background, laughing while playing. The lighting is dominated by neon pink and purple. Cinematic 3D game interface style, crisp rendering, sharp focus on the player's joyful expression. Dark premium aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAv54C4PMhGwHkNTtVAgEHwE147DaWRnYbbnI1TOWvXMpV-nSxsDPfYU5gblQFIOmJ0XFyoYLuJayPT11LIA6SnxKDIXZiMZFaQLTolNtz-cF6_r9YV3MoVKSowU08DA_0J1T09QMys7ftNaHjntOnLKmcZ6LlHIbLbdU64PdCjhmsI5EVOfxH73S-Uv3eB1Bc_c4GvT_13lfq-qDZe9CWZNdc8YQs0Gl2Va63TyAUbRXyzTWlD4X4V5hkYJoPjaFcPtUqmk3aVRFQ"/>
+<div class="absolute bottom-0 inset-x-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+<p class="font-label-caps text-[10px] text-white/90 truncate">ROUGE_ONE</p>
+</div>
+</div>
+</div>
+<!-- Player 5 (Bottom) -->
+<div class="absolute" style="transform: rotate(180deg) translateY(-280px) rotate(-180deg);">
+<div class="glass-panel w-28 aspect-[3/4] rounded-xl overflow-hidden opacity-80">
+<img class="w-full h-full object-cover" data-alt="A professional gamer in a dark hoodie with a vibrant blue neon ambient light hitting their face. Calm, calculated expression. Background features blurred PC hardware with glowing accents. Dark obsidian gaming aesthetic, high production value." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAC9ZiKYCbt3hpbK6vuWOfK1sxNVAJq3jk_iWAGl0ioHuLoDCom3N2LbtyTvUDoD-P3-gjt1DFbkeZpfVPKib2yCilTI3KC22jFu8nJ__L5H6fpejIksqO50AhT1HxfGDuE_UWnKItQR7eC20lIYFFoo-SoSO_1OUlk2RD4n8s61rMJcxIdzsGGadYEZalxS6l5kDjcmedI5uCl5w8eEP-87YU9sNeokzgYwc6rmXghwG3lHnsnoSqoACwndftO0u61RaTOARgkFvU"/>
+<div class="absolute bottom-0 inset-x-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+<p class="font-label-caps text-[10px] text-white/90 truncate">VOID_STALKER</p>
+</div>
+</div>
+</div>
+<!-- Player 6 -->
+<div class="absolute" style="transform: rotate(225deg) translateY(-280px) rotate(-225deg);">
+<div class="glass-panel w-28 aspect-[3/4] rounded-xl overflow-hidden opacity-80">
+<img class="w-full h-full object-cover" data-alt="Young energetic streamer in a high-tech gaming room. The atmosphere is electric with purple and blue LED strips. Ultra-detailed facial features, expressive eyes, modern digital lighting. Consistent with a luxury gaming environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5mfw4oYMXsf9OnYEAI8SwQg8P24n1pf5Y7C9SGUpSZk4ITpjxPbgONFvcZE5vYmsZHu2IuA0Z6Aqv93xZKfG1O99cfSIgp5gRGV6WOmLyYVlZldEaknRwR2oUIEa4sOniqslU4eADRrz1Tgoq9WOzDRpuMZHcuumEpNE_AkHx4rHn32bQUsg95YIYCC0CE6TD4nX4UZCpIafnLZfXETTEpRVnNbuEsy8NBYY8hLH580qRDsk8aX0e2npfIdXgmmfRXeD0bjqqACU"/>
+<div class="absolute bottom-0 inset-x-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+<p class="font-label-caps text-[10px] text-white/90 truncate">LUNA_TIC</p>
+</div>
+</div>
+</div>
+<!-- Player 7 -->
+<div class="absolute" style="transform: rotate(270deg) translateY(-280px) rotate(-270deg);">
+<div class="glass-panel w-28 aspect-[3/4] rounded-xl overflow-hidden opacity-80">
+<img class="w-full h-full object-cover" data-alt="Cyberpunk-style character portrait with glowing tattoos on the neck. Moody blue and magenta split lighting. The background is a soft-blurred high-tech terminal. Hyper-realistic, 8k resolution, cinematic digital art style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDxvUxRMBElABJ09-rDZI-cmLz9vARWw_4AxWIvYLlhc-zMYxT4380NHxc6_t9ZxIg-LAla6u9U5snsAlQdMVc8zv976giMTZBpGrbssdETfPyXz4b8Vka7LvSx7btQQU9VeKN9PuQvTl-i9vV4C9K89pRpfMXo3ICSFUGYlL5inKKYVkoVnIeiiS511cml0h2Abqd2DcDq0xNHyvfQFS-wPDV8HqkdBq9exWvAW9-V-29sb7vc3fcYQ3et1dZy2oIkNZ0p4oLLypo"/>
+<div class="absolute bottom-0 inset-x-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+<p class="font-label-caps text-[10px] text-white/90 truncate">NEON_GHOST</p>
+</div>
+</div>
+</div>
+<!-- Player 8 -->
+<div class="absolute" style="transform: rotate(315deg) translateY(-280px) rotate(-315deg);">
+<div class="glass-panel w-28 aspect-[3/4] rounded-xl overflow-hidden opacity-80">
+<div class="h-full relative bg-surface-container/50 flex flex-col items-center justify-center gap-2">
+<span class="material-symbols-outlined text-4xl text-on-surface-variant/20">person_add</span>
+<span class="text-[8px] font-label-caps text-on-surface-variant/40">INVITE</span>
+</div>
+</div>
+</div>
+<!-- Spin Button -->
+<div class="absolute z-10">
+<button class="group relative flex items-center justify-center" id="spin-button">
+<div class="absolute inset-0 bg-primary/40 blur-2xl rounded-full scale-125 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+<div class="diagonal-cut bg-gradient-to-r from-primary to-secondary px-10 py-6 text-on-primary font-display-lg font-extrabold text-xl tracking-widest shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300">
+                        SPIN BOTTLE
+                    </div>
+</button>
+</div>
+</div>
+<!-- Current Game Status Overlay -->
+<div class="absolute top-10 flex flex-col items-center">
+<div class="glass-panel px-6 py-2 rounded-full border-primary/20 flex items-center gap-3">
+<div class="w-2 h-2 bg-error rounded-full animate-pulse"></div>
+<span class="font-label-caps text-label-caps tracking-widest text-on-surface">ROUND 04 / 10</span>
+</div>
+<h2 class="font-display-lg text-4xl mt-4 text-primary tracking-tighter drop-shadow-lg">TRUTH OR DARE?</h2>
+</div>
+</main>
+<!-- Glassmorphic Chat Panel -->
+<section class="fixed right-3 top-20 bottom-20 w-80 rounded-xl bg-surface-container/10 backdrop-blur-[40px] border border-white/10 shadow-xl hidden xl:flex flex-col z-40 overflow-hidden">
+<div class="p-md border-b border-white/10 flex justify-between items-center bg-white/5">
+<h3 class="font-label-caps text-label-caps text-on-surface">LIVE CHAT</h3>
+<span class="bg-secondary/20 text-secondary px-2 py-0.5 rounded text-[10px] font-stats-code">12 ONLINE</span>
+</div>
+<div class="flex-1 p-md overflow-y-auto space-y-4 font-body-md text-sm">
+<div class="flex flex-col gap-1">
+<span class="text-secondary font-label-caps text-[10px]">CYBER_KIND</span>
+<div class="bg-primary/20 p-3 rounded-tr-xl rounded-br-xl rounded-bl-xl border-l-2 border-primary max-w-[90%]">
+                    Ready to spin the bottle! Who's going first?
+                </div>
+</div>
+<div class="flex flex-col gap-1 items-end">
+<span class="text-on-surface-variant font-label-caps text-[10px]">YOU</span>
+<div class="glass-panel p-3 rounded-tl-xl rounded-bl-xl rounded-br-xl max-w-[90%]">
+                    I choose DARE. Bring it on!
+                </div>
+</div>
+<div class="flex flex-col gap-1">
+<span class="text-primary font-label-caps text-[10px]">LUNA_TIC</span>
+<div class="bg-white/5 p-3 rounded-tr-xl rounded-br-xl rounded-bl-xl border-l-2 border-white/20 max-w-[90%]">
+                    Haha, let's see what you've got.
+                </div>
+</div>
+<div class="flex flex-col gap-1">
+<span class="text-secondary font-label-caps text-[10px]">VOID_STALKER</span>
+<div class="bg-white/5 p-3 rounded-tr-xl rounded-br-xl rounded-bl-xl border-l-2 border-white/20 max-w-[90%]">
+                    Anyone heard from Nova? She's quiet today.
+                </div>
+</div>
+</div>
+<div class="p-md bg-white/5 border-t border-white/10">
+<div class="relative neon-border-bottom">
+<input class="w-full bg-transparent border-none focus:ring-0 text-sm py-2 placeholder:text-on-surface-variant/40" placeholder="Type a message..." type="text"/>
+<button class="absolute right-0 top-1/2 -translate-y-1/2 material-symbols-outlined text-primary hover:text-secondary transition-colors">send</button>
+</div>
+</div>
+</section>
+<!-- Bottom Navigation Shell -->
+<nav class="fixed bottom-0 inset-x-0 h-16 glass-panel border-t border-white/10 flex items-center justify-center gap-xl md:hidden z-50">
+<button class="flex flex-col items-center gap-1 text-on-surface-variant/70 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span class="text-[10px] font-label-caps">CHAT</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-primary font-bold">
+<span class="material-symbols-outlined">sports_esports</span>
+<span class="text-[10px] font-label-caps">PLAY</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant/70 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="text-[10px] font-label-caps">RANKS</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant/70 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-label-caps">ROOM</span>
+</button>
+</nav>
+<script>
+        // Micro-interaction for the Spin Button
+        const spinButton = document.getElementById('spin-button');
+        spinButton.addEventListener('click', () => {
+            spinButton.classList.add('scale-90');
+            setTimeout(() => spinButton.classList.remove('scale-90'), 100);
+            
+            // Logic to simulate bottle spin could be added here
+            console.log('Spinning the bottle...');
+        });
+
+        // Atmospheric mouse glow effect
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX;
+            const y = e.clientY;
+            // This could drive a shader uniform if the webgl component supports it
+        });
+    </script>
+</body></html>

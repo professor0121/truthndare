@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NEON ARENA | Ultimate Multiplayer Truth or Dare</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;family=Montserrat:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+        .neon-glow-primary {
+            box-shadow: 0 0 20px rgba(235, 178, 255, 0.3);
+        }
+        .neon-glow-secondary {
+            box-shadow: 0 0 20px rgba(0, 227, 253, 0.3);
+        }
+        .diagonal-cut {
+            clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
+        }
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        body {
+            background-color: #0e0d13;
+            color: #e5e1ea;
+            overflow-x: hidden;
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-container": "#130002",
+                    "on-tertiary-fixed": "#40000c",
+                    "inverse-primary": "#9800d0",
+                    "on-primary-fixed": "#320047",
+                    "surface-container-lowest": "#0e0d13",
+                    "on-error-container": "#ffdad6",
+                    "on-error": "#690005",
+                    "secondary-container": "#00e3fd",
+                    "primary-container": "#bc13fe",
+                    "surface-container": "#201f25",
+                    "on-background": "#e5e1ea",
+                    "outline-variant": "#504254",
+                    "primary-fixed": "#f8d8ff",
+                    "tertiary-fixed-dim": "#ffb3b5",
+                    "inverse-surface": "#e5e1ea",
+                    "surface-container-high": "#2b2930",
+                    "surface-bright": "#3a383f",
+                    "error": "#ffb4ab",
+                    "on-secondary-fixed": "#001f24",
+                    "on-primary-fixed-variant": "#74009f",
+                    "on-secondary-container": "#00616d",
+                    "surface-variant": "#35343b",
+                    "primary-fixed-dim": "#ebb2ff",
+                    "primary": "#ebb2ff",
+                    "outline": "#9d8ba0",
+                    "tertiary-container": "#e91648",
+                    "error-container": "#93000a",
+                    "inverse-on-surface": "#312f36",
+                    "background": "#141319",
+                    "surface-dim": "#141319",
+                    "on-secondary": "#00363d",
+                    "on-primary-container": "#ffffff",
+                    "on-tertiary": "#680019",
+                    "on-tertiary-fixed-variant": "#920027",
+                    "secondary-fixed-dim": "#00daf3",
+                    "surface-container-low": "#1c1b21",
+                    "on-secondary-fixed-variant": "#004f58",
+                    "tertiary": "#ffb3b5",
+                    "on-surface": "#e5e1ea",
+                    "surface": "#141319",
+                    "secondary": "#bdf4ff",
+                    "on-primary": "#520072",
+                    "surface-tint": "#ebb2ff",
+                    "on-surface-variant": "#d4c0d7",
+                    "secondary-fixed": "#9cf0ff",
+                    "tertiary-fixed": "#ffdada",
+                    "surface-container-highest": "#35343b"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "md": "24px",
+                    "lg": "48px",
+                    "xl": "80px",
+                    "xs": "4px",
+                    "gutter": "24px",
+                    "margin-mobile": "16px",
+                    "margin-desktop": "40px",
+                    "sm": "12px",
+                    "base": "8px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Montserrat"],
+                    "label-caps": ["Montserrat"],
+                    "display-lg-mobile": ["Montserrat"],
+                    "body-lg": ["Inter"],
+                    "stats-code": ["JetBrains Mono"],
+                    "body-md": ["Inter"],
+                    "display-lg": ["Montserrat"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                    "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                    "display-lg-mobile": ["32px", {"lineHeight": "1.2", "fontWeight": "800"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "stats-code": ["14px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}]
+            }
+          },
+        },
+      }
+    </script>
+</head>
+<body class="font-body-md text-body-md selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopNavBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-desktop h-16 bg-surface/60 backdrop-blur-[40px] dark:bg-surface/60 border-b border-white/10 shadow-[0_0_30px_rgba(235,178,255,0.15)]">
+<div class="flex items-center gap-base">
+<span class="font-headline-md text-headline-md font-extrabold text-primary dark:text-primary tracking-tighter">NEON ARENA</span>
+</div>
+<nav class="hidden md:flex gap-lg items-center">
+<a class="font-label-caps text-label-caps text-primary dark:text-primary font-bold hover:bg-white/5 transition-colors px-sm py-xs rounded-lg" href="#">Home</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant/70 dark:text-on-surface-variant/70 hover:bg-white/5 transition-colors px-sm py-xs rounded-lg" href="#">Lobbies</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant/70 dark:text-on-surface-variant/70 hover:bg-white/5 transition-colors px-sm py-xs rounded-lg" href="#">Leaderboard</a>
+</nav>
+<div class="flex items-center gap-md">
+<button class="material-symbols-outlined text-primary hover:bg-white/5 transition-colors p-2 rounded-full active:scale-95 duration-200" data-icon="notifications">notifications</button>
+<button class="material-symbols-outlined text-primary hover:bg-white/5 transition-colors p-2 rounded-full active:scale-95 duration-200" data-icon="settings">settings</button>
+<div class="w-10 h-10 rounded-full overflow-hidden border border-primary/30">
+<img class="w-full h-full object-cover" data-alt="A stylized portrait of a competitive gamer wearing high-tech glowing headphones. The background is a dark obsidian with vibrant neon purple and cyan lighting reflecting off the skin. The style is cinematic, sharp focus, with a slight 3D depth effect typical of premium esports interfaces." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbceUfi6NcDL_qN7pS0GWhbsC0ae_7MN6_OperxZCWBf3DQFE398pD2S4VFTHU0xhsQQxbY3kNBB5stiUqgGt5Ku5ZH6-XsGc5oPIbXFQylQb4HhhiCMqpYzSJGjhGJ8XydiC3b7paXdm-L9oHiK_M2PskFFUHFpSST7hrzHrh_IgH3hNt-9KIWqjJhD7r4H1KPlVwpRfZuN_J3nlCr1cw0H0YqpUAOMOBEG20XMnjckhRioPzbyvx-y02plCkTVCXOn1bR7wkV9c"/>
+</div>
+</div>
+</header>
+<!-- SideNavBar (Desktop Only) -->
+<aside class="hidden lg:flex fixed left-3 top-20 bottom-3 w-64 rounded-xl flex-col p-md gap-4 bg-surface-container/10 backdrop-blur-[40px] dark:bg-surface-container/10 border border-white/10 shadow-xl z-40">
+<div class="flex items-center gap-sm px-sm py-md border-b border-white/5">
+<div class="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary-container" style="font-variation-settings: 'FILL' 1;">military_tech</span>
+</div>
+<div>
+<p class="font-label-caps text-label-caps text-secondary dark:text-secondary-fixed-dim">Rank: Elite</p>
+<p class="text-[10px] text-on-surface-variant font-stats-code">4,280 XP</p>
+</div>
+</div>
+<nav class="flex flex-col gap-2 flex-grow">
+<button class="flex items-center gap-md p-sm rounded-lg bg-gradient-to-r from-primary/20 to-secondary/20 text-on-primary-container border-r-2 border-primary duration-300 ease-out font-label-caps text-label-caps">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+                Home
+            </button>
+<button class="flex items-center gap-md p-sm rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-white/5 hover:translate-x-1 transition-all duration-300 ease-out font-label-caps text-label-caps">
+<span class="material-symbols-outlined" data-icon="sports_esports">sports_esports</span>
+                Lobbies
+            </button>
+<button class="flex items-center gap-md p-sm rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-white/5 hover:translate-x-1 transition-all duration-300 ease-out font-label-caps text-label-caps">
+<span class="material-symbols-outlined" data-icon="leaderboard">leaderboard</span>
+                Leaderboard
+            </button>
+<button class="flex items-center gap-md p-sm rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-white/5 hover:translate-x-1 transition-all duration-300 ease-out font-label-caps text-label-caps">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+                Inventory
+            </button>
+<button class="flex items-center gap-md p-sm rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-white/5 hover:translate-x-1 transition-all duration-300 ease-out font-label-caps text-label-caps">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+                Friends
+            </button>
+</nav>
+<button class="w-full py-md px-sm bg-gradient-to-r from-primary to-secondary text-on-primary-container font-bold rounded-lg diagonal-cut hover:brightness-110 active:scale-95 transition-all neon-glow-primary">
+            CREATE ROOM
+        </button>
+<div class="flex flex-col gap-2 mt-auto pt-md border-t border-white/5">
+<button class="flex items-center gap-md p-sm rounded-lg text-on-surface-variant hover:text-on-surface font-label-caps text-label-caps">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+                Help
+            </button>
+<button class="flex items-center gap-md p-sm rounded-lg text-on-surface-variant hover:text-on-surface font-label-caps text-label-caps">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+                Logout
+            </button>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="lg:pl-[280px] min-h-screen pt-16 relative">
+<!-- Hero Section -->
+<section class="relative h-[921px] flex flex-col items-center justify-center overflow-hidden px-margin-mobile md:px-margin-desktop">
+<!-- STITCH_SHADER_START:ANIMATION_1 class="absolute inset-0 w-full h-full opacity-60" -->
+<div class="absolute inset-0 w-full h-full opacity-60" style="display:block;">
+<canvas id="shader-canvas-ANIMATION_1" style="display:block;width:100%;height:100%"></canvas>
+<script>
+(function() {
+  const canvas = document.getElementById('shader-canvas-ANIMATION_1');
+
+  // Sync the WebGL drawing-buffer size with the CSS-driven layout size.
+  // This fires on initial layout and whenever the element is resized.
+  function syncSize() {
+    const w = canvas.clientWidth  || 1280;
+    const h = canvas.clientHeight || 720;
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width  = w;
+      canvas.height = h;
+    }
+  }
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(syncSize).observe(canvas);
+  }
+  syncSize();
+
+  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  if (!gl) return;
+  const vs = `attribute vec2 a_position;
+varying vec2 v_texCoord;
+void main() {
+  v_texCoord = a_position * 0.5 + 0.5;
+  gl_Position = vec4(a_position, 0.0, 1.0);
+}`;
+  const fs = `precision highp float;
+varying vec2 v_texCoord;
+uniform float u_time;
+uniform vec2 u_resolution;
+
+void main() {
+    vec2 uv = v_texCoord;
+    
+    // Background color
+    vec3 color1 = vec3(0.043, 0.039, 0.063); // Deep Obsidian
+    vec3 color2 = vec3(0.12, 0.05, 0.25);   // Deep Purple
+    
+    // Animated gradient
+    float noise = sin(uv.x * 2.0 + u_time * 0.5) * cos(uv.y * 2.0 - u_time * 0.3);
+    vec3 bg = mix(color1, color2, uv.y + noise * 0.2);
+    
+    // Glowing orbs
+    vec2 p1 = vec2(0.2 + 0.1 * sin(u_time * 0.4), 0.3 + 0.1 * cos(u_time * 0.5));
+    float d1 = length(uv - p1);
+    vec3 orb1 = vec3(0.5, 0.0, 1.0) * (0.05 / (d1 + 0.1));
+    
+    vec2 p2 = vec2(0.8 + 0.1 * cos(u_time * 0.6), 0.7 + 0.1 * sin(u_time * 0.3));
+    float d2 = length(uv - p2);
+    vec3 orb2 = vec3(0.0, 0.6, 1.0) * (0.05 / (d2 + 0.1));
+    
+    gl_FragColor = vec4(bg + orb1 + orb2, 1.0);
+}`;
+  function cs(type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    return s;
+  }
+  const prog = gl.createProgram();
+  gl.attachShader(prog, cs(gl.VERTEX_SHADER, vs));
+  gl.attachShader(prog, cs(gl.FRAGMENT_SHADER, fs));
+  gl.linkProgram(prog);
+  gl.useProgram(prog);
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+  const pos = gl.getAttribLocation(prog, 'a_position');
+  gl.enableVertexAttribArray(pos);
+  gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
+  const uTime = gl.getUniformLocation(prog, 'u_time');
+  const uRes = gl.getUniformLocation(prog, 'u_resolution');
+  const uMouse = gl.getUniformLocation(prog, 'u_mouse');
+
+  // u_mouse is in pixel coordinates matching u_resolution (ShaderToy convention).
+  // Shaders that need normalized coords should use: u_mouse / u_resolution.
+  let mouse = { x: canvas.width / 2, y: canvas.height / 2 };
+  window.addEventListener('mousemove', (event) => {
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width && rect.height) {
+      const nx = (event.clientX - rect.left) / rect.width;
+      const ny = 1.0 - (event.clientY - rect.top) / rect.height;
+      mouse.x = nx * canvas.width;
+      mouse.y = ny * canvas.height;
+    }
+  });
+
+  function render(t) {
+    if (typeof ResizeObserver === 'undefined') syncSize();
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    if (uTime) gl.uniform1f(uTime, t * 0.001);
+    if (uRes) gl.uniform2f(uRes, canvas.width, canvas.height);
+    if (uMouse) gl.uniform2f(uMouse, mouse.x, mouse.y);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    requestAnimationFrame(render);
+  }
+  render(0);
+})();
+</script>
+</div>
+<!-- STITCH_SHADER_END:ANIMATION_1 -->
+<div class="relative z-10 text-center max-w-4xl space-y-md">
+<div class="inline-block px-4 py-1 rounded-full glass-panel text-primary-fixed-dim font-stats-code text-xs mb-md border-primary/20">
+<span class="animate-pulse mr-2">●</span> LIVE: 12,402 PLAYERS ONLINE
+                </div>
+<h1 class="font-display-lg text-display-lg md:text-[120px] font-extrabold tracking-tighter leading-none bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-primary/50 drop-shadow-[0_10px_30px_rgba(235,178,255,0.4)]">
+                    NEON ARENA
+                </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto backdrop-blur-sm">
+                    Enter the world's first cinematic Truth or Dare experience. Spatial audio, real-time reactions, and stakes that feel real.
+                </p>
+<div class="flex flex-wrap items-center justify-center gap-md pt-lg">
+<button class="px-xl py-md bg-gradient-to-r from-primary to-secondary text-on-primary-container font-headline-md text-headline-md rounded-xl neon-glow-primary hover:scale-105 transition-transform active:scale-95 flex items-center gap-base">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add_circle</span>
+                        CREATE ROOM
+                    </button>
+<button class="px-xl py-md glass-panel text-on-surface font-headline-md text-headline-md rounded-xl hover:bg-white/10 transition-colors border-white/20 active:scale-95 flex items-center gap-base">
+<span class="material-symbols-outlined">groups</span>
+                        JOIN ROOM
+                    </button>
+</div>
+</div>
+<!-- Floating Bottle Accessory -->
+<div class="absolute right-10 bottom-20 md:right-32 md:top-1/2 md:-translate-y-1/2 w-64 h-96 animate-float hidden md:block">
+<div class="w-full h-full glass-panel rounded-3xl overflow-hidden relative group">
+<div class="absolute inset-0 bg-gradient-to-t from-primary/30 to-transparent"></div>
+<img class="w-full h-full object-cover" data-alt="A highly detailed 3D render of a futuristic neon glass bottle floating in a void. The bottle is translucent with purple and blue energy swirling inside. Intricate glowing circuitry patterns etched into the glass catch the light. The environment is dark with volumetric light rays and floating crystalline dust particles." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCOgzFUyg0UUv-JZDt5qfXLxkN3cFLHd5WlrRyt21LjaO925tgnWOcl31sbRT-fHf_XwkNWOtyqRkai_nc3jjHDi0uYhqWDFditTQEE0X6HGiWNYFc89swkHwTBzTh5a7yeZBPCSOj4buflTS0mt4IhM9xnIFqNYrosRuiXuu9sXTZpXMCAe3IjNHBFprLob9aXZDz_V4Z4aaWmVdOBaa-eOpWXR5vgAFp1xwsBqBPo5GZTnAOJhSamOIEnYIIxmeOjARoeIzuFndI"/>
+<div class="absolute bottom-4 left-4 right-4">
+<div class="glass-panel p-sm rounded-xl">
+<p class="font-stats-code text-xs text-secondary-fixed-dim">EQUIPPED SKIN</p>
+<p class="font-headline-md text-primary">Cyber-Amethyst V2</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Features Bento Grid -->
+<section class="py-xl px-margin-mobile md:px-margin-desktop bg-surface-container-lowest/50 backdrop-blur-md">
+<div class="max-w-7xl mx-auto">
+<h2 class="font-display-lg text-display-lg mb-xl text-center">
+<span class="text-on-surface-variant opacity-50">ELEVATE THE</span> <span class="text-primary">GAME.</span>
+</h2>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Feature Card 1 -->
+<div class="md:col-span-8 group relative overflow-hidden glass-panel rounded-[24px] p-lg flex flex-col justify-between h-[400px]">
+<div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5"></div>
+<div class="relative z-10">
+<span class="material-symbols-outlined text-[48px] text-primary mb-md" data-icon="videocam">videocam</span>
+<h3 class="font-headline-md text-headline-md text-white mb-base">Real-time Video Chat</h3>
+<p class="text-on-surface-variant max-w-md">Ultra-low latency streaming brings the room closer than ever. React in real-time with VisionOS inspired spatial video windows.</p>
+</div>
+<div class="relative z-10 mt-md flex -space-x-4">
+<div class="w-12 h-12 rounded-full border-2 border-surface bg-primary/20 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A macro close-up of a human eye with a vibrant purple neon iris. The skin around the eye is highly detailed with pores and soft glowing highlights. Cinematic lighting, shallow depth of field, futuristic gaming vibe." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD3WbMZaps_9WY37XBm6WiESjqSBJeeigbkFKYptwVrKa7uBq2qNajRtTVmlSTRKyIQCOnLxwNuBxKmrw1qbweghlNcSKcJb_722HiDXtY3w-NQzOM8auB2-EO8ZRHPBaz5OhU4h6GQIssCpk6dQ7c-W74lv2UVSM7CTenD3GrheW0eXa7_Invovg4Mq_L0sAVkxmZZimLWhfQbQSZxrjijlOhcD6urCn7Z239X_ePO4EUfJex3u0THjszHPZYwDuijpA53dCAOO6k"/>
+</div>
+<div class="w-12 h-12 rounded-full border-2 border-surface bg-secondary/20 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A portrait of a gamer laughing, illuminated by a split blue and magenta light source. The style is modern, hyper-realistic, and captures intense emotion. Background is a blurred digital workspace." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDa0HJbRFRjgWzogoGXLV7s9mJYkkHVUsp8UTRvtzpoHcOm8sz3G6EfWjibeZKLE_rzoaVGB5f7nAY5kOUHsPli2WxA244SK-qrb5Jn0Ua5mYzEZaKMSkLUv8kIzNdcL8c1Z3lvKW5hMagI9acIvzDQF4DwRPBaK1lqdMFqnbzMZHy4XqGDz7umaFSOVDi7xOLLVUBNWvaBjhrGkavjAyTCeBH0v7i_Et8HiRn0mJyYS0GeGqU7OaRQzmVOzpQk7H6LfXD1Lo8QMHc"/>
+</div>
+<div class="w-12 h-12 rounded-full border-2 border-surface bg-surface-bright flex items-center justify-center text-xs font-bold">+12</div>
+</div>
+</div>
+<!-- Feature Card 2 -->
+<div class="md:col-span-4 glass-panel rounded-[24px] p-lg flex flex-col items-center justify-center text-center h-[400px] border-t-secondary/20">
+<div class="w-32 h-32 bg-secondary/10 rounded-full flex items-center justify-center mb-md neon-glow-secondary relative">
+<span class="material-symbols-outlined text-[64px] text-secondary" data-icon="view_in_ar">view_in_ar</span>
+<div class="absolute inset-0 border-2 border-dashed border-secondary/30 rounded-full animate-[spin_10s_linear_infinite]"></div>
+</div>
+<h3 class="font-headline-md text-headline-md text-white mb-base">3D Bottle Physics</h3>
+<p class="text-on-surface-variant">Powered by a custom 3D engine for perfectly randomized and satisfying spins every single time.</p>
+</div>
+<!-- Feature Card 3 -->
+<div class="md:col-span-4 glass-panel rounded-[24px] p-lg flex flex-col h-[400px] border-b-primary/20 overflow-hidden">
+<div class="mb-lg">
+<h3 class="font-headline-md text-headline-md text-white mb-base">Global Leaderboards</h3>
+<p class="text-on-surface-variant">Prove your courage. Earn XP for every dare completed and climb the Elite ranks.</p>
+</div>
+<div class="space-y-sm mt-auto">
+<div class="flex items-center justify-between p-sm glass-panel rounded-lg bg-white/5">
+<div class="flex items-center gap-sm">
+<span class="font-stats-code text-primary">#1</span>
+<span class="text-sm">NeonKnight</span>
+</div>
+<span class="font-stats-code text-secondary">9,820</span>
+</div>
+<div class="flex items-center justify-between p-sm glass-panel rounded-lg bg-white/5">
+<div class="flex items-center gap-sm">
+<span class="font-stats-code text-on-surface-variant">#2</span>
+<span class="text-sm">VoidWalker</span>
+</div>
+<span class="font-stats-code text-on-surface-variant">8,450</span>
+</div>
+<div class="flex items-center justify-between p-sm glass-panel rounded-lg bg-white/5">
+<div class="flex items-center gap-sm">
+<span class="font-stats-code text-on-surface-variant">#3</span>
+<span class="text-sm">EtherZero</span>
+</div>
+<span class="font-stats-code text-on-surface-variant">7,900</span>
+</div>
+</div>
+</div>
+<!-- Feature Card 4 -->
+<div class="md:col-span-8 relative overflow-hidden rounded-[24px] group min-h-[400px]">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-1000 group-hover:scale-110" data-alt="A sprawling futuristic digital city at night viewed from a high-rise balcony. The city is filled with neon purple and blue holographic advertisements and flying vehicles. The aesthetic is clean, high-contrast, and deeply immersive, reflecting the premium social atmosphere of Neon Arena. Cinematic wide angle." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDGgwjf5OV8N8hJnMHQv_8PgsOwj34A7YmD7fs8wlxiXemDxK-dFG3okP_kPQYXtiD57z5EJmHIZLB7aH6PUxgWDWOBQRnHf3brvaLccOQv37KKtom8ZRB6FLdHxs0qAAcNOxYP4aRxH8W453vFpL87cukFnENDoDFSI82Nw1Y4Ew-EHweBY92W4kcjT-vvXbamNXTV83noA9GCz5bqyrvfsEZri1N_8oFryslz-njpHMzwMvHUrgAOiG88EMSrc6oSafA2Kxc54TU')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/40 to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-lg">
+<h3 class="font-display-lg text-[32px] text-white mb-base">The Arena Awaits</h3>
+<p class="text-on-surface-variant max-w-sm mb-md">Join dynamic social lobbies and find your squad in an immersive digital cityscape.</p>
+<button class="px-lg py-sm bg-white/10 backdrop-blur-md border border-white/20 rounded-full font-label-caps text-label-caps hover:bg-white/20 transition-all">EXPLORE LOBBIES</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Stats Section -->
+<section class="py-xl border-y border-white/5 bg-surface-container-low/30 backdrop-blur-xl">
+<div class="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop grid grid-cols-2 lg:grid-cols-4 gap-lg">
+<div class="text-center">
+<p class="text-primary font-display-lg text-display-lg-mobile md:text-display-lg mb-xs">2M+</p>
+<p class="font-label-caps text-label-caps text-on-surface-variant">Dares Completed</p>
+</div>
+<div class="text-center">
+<p class="text-secondary font-display-lg text-display-lg-mobile md:text-display-lg mb-xs">4.9/5</p>
+<p class="font-label-caps text-label-caps text-on-surface-variant">Player Rating</p>
+</div>
+<div class="text-center">
+<p class="text-primary font-display-lg text-display-lg-mobile md:text-display-lg mb-xs">50+</p>
+<p class="font-label-caps text-label-caps text-on-surface-variant">Countries Live</p>
+</div>
+<div class="text-center">
+<p class="text-secondary font-display-lg text-display-lg-mobile md:text-display-lg mb-xs">24/7</p>
+<p class="font-label-caps text-label-caps text-on-surface-variant">Active Matches</p>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="py-lg px-margin-mobile md:px-margin-desktop border-t border-white/5">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-lg">
+<div class="flex flex-col gap-base items-center md:items-start">
+<span class="font-headline-md text-headline-md font-extrabold text-primary tracking-tighter">NEON ARENA</span>
+<p class="text-xs text-on-surface-variant font-stats-code">© 2024 NEON LABS. ALL RIGHTS RESERVED.</p>
+</div>
+<div class="flex gap-lg">
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-caps text-label-caps" href="#">Privacy</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-caps text-label-caps" href="#">Terms</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-caps text-label-caps" href="#">Support</a>
+</div>
+<div class="flex gap-md">
+<button class="w-10 h-10 rounded-full glass-panel flex items-center justify-center hover:text-secondary transition-all"><span class="material-symbols-outlined">share</span></button>
+<button class="w-10 h-10 rounded-full glass-panel flex items-center justify-center hover:text-secondary transition-all"><span class="material-symbols-outlined">forum</span></button>
+</div>
+</div>
+</footer>
+</main>
+<!-- Bottom Navigation (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full bg-surface/80 backdrop-blur-xl border-t border-white/10 px-margin-mobile py-4 flex justify-around items-center z-50">
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+<span class="text-[10px] font-bold">HOME</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant/70">
+<span class="material-symbols-outlined">sports_esports</span>
+<span class="text-[10px] font-bold">LOBBIES</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant/70">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="text-[10px] font-bold">RANKS</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant/70">
+<span class="material-symbols-outlined">account_circle</span>
+<span class="text-[10px] font-bold">PROFILE</span>
+</button>
+</nav>
+<script>
+        // Micro-interactions for glass cards
+        document.querySelectorAll('.glass-panel').forEach(panel => {
+            panel.addEventListener('mousemove', (e) => {
+                const rect = panel.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                panel.style.setProperty('--mouse-x', `${x}px`);
+                panel.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+    </script>
+</body></html>

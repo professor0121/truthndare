@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NEON ARENA | Room Browser</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Montserrat:wght@100..900&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-container": "#130002",
+                    "on-tertiary-fixed": "#40000c",
+                    "inverse-primary": "#9800d0",
+                    "on-primary-fixed": "#320047",
+                    "surface-container-lowest": "#0e0d13",
+                    "on-error-container": "#ffdad6",
+                    "on-error": "#690005",
+                    "secondary-container": "#00e3fd",
+                    "primary-container": "#bc13fe",
+                    "surface-container": "#201f25",
+                    "on-background": "#e5e1ea",
+                    "outline-variant": "#504254",
+                    "primary-fixed": "#f8d8ff",
+                    "tertiary-fixed-dim": "#ffb3b5",
+                    "inverse-surface": "#e5e1ea",
+                    "surface-container-high": "#2b2930",
+                    "surface-bright": "#3a383f",
+                    "error": "#ffb4ab",
+                    "on-secondary-fixed": "#001f24",
+                    "on-primary-fixed-variant": "#74009f",
+                    "on-secondary-container": "#00616d",
+                    "surface-variant": "#35343b",
+                    "primary-fixed-dim": "#ebb2ff",
+                    "primary": "#ebb2ff",
+                    "outline": "#9d8ba0",
+                    "tertiary-container": "#e91648",
+                    "error-container": "#93000a",
+                    "inverse-on-surface": "#312f36",
+                    "background": "#141319",
+                    "surface-dim": "#141319",
+                    "on-secondary": "#00363d",
+                    "on-primary-container": "#ffffff",
+                    "on-tertiary": "#680019",
+                    "on-tertiary-fixed-variant": "#920027",
+                    "secondary-fixed-dim": "#00daf3",
+                    "surface-container-low": "#1c1b21",
+                    "on-secondary-fixed-variant": "#004f58",
+                    "tertiary": "#ffb3b5",
+                    "on-surface": "#e5e1ea",
+                    "surface": "#141319",
+                    "secondary": "#bdf4ff",
+                    "on-primary": "#520072",
+                    "surface-tint": "#ebb2ff",
+                    "on-surface-variant": "#d4c0d7",
+                    "secondary-fixed": "#9cf0ff",
+                    "tertiary-fixed": "#ffdada",
+                    "surface-container-highest": "#35343b"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "md": "24px",
+                    "lg": "48px",
+                    "xl": "80px",
+                    "xs": "4px",
+                    "gutter": "24px",
+                    "margin-mobile": "16px",
+                    "margin-desktop": "40px",
+                    "sm": "12px",
+                    "base": "8px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Montserrat"],
+                    "label-caps": ["Montserrat"],
+                    "display-lg-mobile": ["Montserrat"],
+                    "body-lg": ["Inter"],
+                    "stats-code": ["JetBrains Mono"],
+                    "body-md": ["Inter"],
+                    "display-lg": ["Montserrat"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                    "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                    "display-lg-mobile": ["32px", {"lineHeight": "1.2", "fontWeight": "800"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "stats-code": ["14px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+        .neon-glow-primary {
+            box-shadow: 0 0 20px rgba(235, 178, 255, 0.3);
+        }
+        .diagonal-cut {
+            clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(235, 178, 255, 0.2);
+            border-radius: 10px;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.8; }
+        }
+        .glow-pulse {
+            animation: pulse-glow 3s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md overflow-hidden h-screen selection:bg-primary/30">
+<!-- Ambient Background Glows -->
+<div class="fixed inset-0 pointer-events-none z-0">
+<div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[120px] glow-pulse"></div>
+<div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/10 rounded-full blur-[100px] glow-pulse" style="animation-delay: 1.5s;"></div>
+</div>
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-desktop h-16 bg-surface/60 backdrop-blur-[40px] border-b border-white/10 shadow-[0_0_30px_rgba(235,178,255,0.15)]">
+<div class="flex items-center gap-base">
+<span class="font-headline-md text-headline-md font-extrabold text-primary tracking-tighter uppercase">NEON ARENA</span>
+</div>
+<div class="hidden md:flex flex-1 max-w-xl mx-lg">
+<div class="relative w-full group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/50 group-focus-within:text-primary transition-colors">search</span>
+<input class="w-full bg-white/5 border-b-2 border-white/10 focus:border-primary focus:ring-0 transition-all px-10 py-2 outline-none font-body-md" placeholder="Search for rooms, players, or tags..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="material-symbols-outlined text-on-surface-variant/70 hover:text-primary hover:bg-white/5 p-2 rounded-full transition-all">notifications</button>
+<button class="material-symbols-outlined text-on-surface-variant/70 hover:text-primary hover:bg-white/5 p-2 rounded-full transition-all">settings</button>
+<div class="h-10 w-10 rounded-full overflow-hidden border border-primary/30 hover:border-primary transition-all cursor-pointer">
+<img class="w-full h-full object-cover" data-alt="A futuristic professional portrait of a high-ranked competitive gamer with neon purple light reflections on their face, wearing high-tech gaming headset, set against a dark obsidian tech-command center background with glass elements and digital bokeh." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLwyyCLxmHihZv1dWQ21pF5jD2myEC2XnS4M9xkycpR9ak9TDNpCdsMCeqmGF1u2snlhMhsE87HH3LjiWGI_ex0-9QAwqRNbfj8HCYkG9rCOgMet0jjO-JK5CzlxGVznbyoC62lr6eso-HaZuaFeBkRcCuhhbTbMHPEewAFmd7QfngfEpcGmbNkyaquOdEr_yznzEuTcBDSjRrh-rKf6vWHxoksm1t2L3hRE79i53LZFSCAGpm8vOH9m3HCkrbDZbchf3ZeZ_VTYo"/>
+</div>
+</div>
+</nav>
+<div class="flex h-screen pt-16">
+<!-- SideNavBar -->
+<aside class="hidden lg:flex flex-col p-md gap-4 fixed left-3 top-20 bottom-3 w-64 rounded-xl bg-surface-container/10 backdrop-blur-[40px] border border-white/10 shadow-xl z-40">
+<!-- Header/Profile Info -->
+<div class="flex items-center gap-sm p-base border-b border-white/5 mb-2">
+<div class="h-8 w-8 rounded bg-primary/20 flex items-center justify-center text-primary border border-primary/40">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+</div>
+<div>
+<div class="font-label-caps text-label-caps text-secondary">Rank: Elite</div>
+<div class="text-[10px] text-on-surface-variant/60 font-stats-code">4,280 XP</div>
+</div>
+</div>
+<!-- Main Tabs -->
+<div class="flex flex-col gap-1">
+<a class="flex items-center gap-sm px-4 py-3 rounded-lg text-on-surface-variant/70 hover:bg-white/5 hover:translate-x-1 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">grid_view</span>
+<span class="font-label-caps text-label-caps">Home</span>
+</a>
+<a class="flex items-center gap-sm px-4 py-3 rounded-lg bg-gradient-to-r from-primary/20 to-secondary/20 text-on-primary-container border-r-2 border-primary transition-all duration-300" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">sports_esports</span>
+<span class="font-label-caps text-label-caps">Lobbies</span>
+</a>
+<a class="flex items-center gap-sm px-4 py-3 rounded-lg text-on-surface-variant/70 hover:bg-white/5 hover:translate-x-1 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="font-label-caps text-label-caps">Leaderboard</span>
+</a>
+<a class="flex items-center gap-sm px-4 py-3 rounded-lg text-on-surface-variant/70 hover:bg-white/5 hover:translate-x-1 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-label-caps text-label-caps">Inventory</span>
+</a>
+<a class="flex items-center gap-sm px-4 py-3 rounded-lg text-on-surface-variant/70 hover:bg-white/5 hover:translate-x-1 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-caps text-label-caps">Friends</span>
+</a>
+</div>
+<button class="mt-4 mx-2 py-3 bg-gradient-to-br from-primary to-secondary text-on-primary-container font-bold text-xs tracking-widest rounded-sm diagonal-cut shadow-[0_0_15px_rgba(188,19,254,0.3)] hover:brightness-110 active:scale-95 transition-all">
+                CREATE ROOM
+            </button>
+<!-- Footer Tabs -->
+<div class="mt-auto flex flex-col gap-1 border-t border-white/5 pt-4">
+<a class="flex items-center gap-sm px-4 py-2 rounded-lg text-on-surface-variant/70 hover:text-on-surface hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">help</span>
+<span class="font-label-caps text-label-caps">Help</span>
+</a>
+<a class="flex items-center gap-sm px-4 py-2 rounded-lg text-on-surface-variant/70 hover:text-error hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+<span class="font-label-caps text-label-caps">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 lg:ml-72 p-margin-desktop overflow-y-auto custom-scrollbar z-10">
+<!-- Header & Filter Row -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-md mb-xl">
+<div>
+<h1 class="font-display-lg text-display-lg uppercase leading-none mb-2">Lobby <span class="text-primary italic">Browser</span></h1>
+<p class="text-on-surface-variant/70 font-body-lg">Find your next battle in the electric arena.</p>
+</div>
+<div class="glass-panel p-1 rounded-lg flex gap-1">
+<button class="px-6 py-2 rounded-md font-label-caps text-label-caps bg-primary/20 text-primary border border-primary/30">Public</button>
+<button class="px-6 py-2 rounded-md font-label-caps text-label-caps text-on-surface-variant/60 hover:text-on-surface hover:bg-white/5 transition-all">Friends</button>
+<button class="px-6 py-2 rounded-md font-label-caps text-label-caps text-on-surface-variant/60 hover:text-on-surface hover:bg-white/5 transition-all">Trending</button>
+</div>
+</div>
+<!-- Bento-Style Room Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-md">
+<!-- Room Card 1 -->
+<div class="glass-panel rounded-xl overflow-hidden group hover:border-primary/50 transition-all duration-500 hover:shadow-[0_0_30px_rgba(188,19,254,0.1)]">
+<div class="h-48 relative overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="A high-intensity cinematic screenshot of a cybernetic neon city arena at night with purple and teal light trails, volumetric fog, and sharp tech architecture. The scene captures the energy of a fast-paced multiplayer combat environment in a modern glassmorphic gaming aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBeL49ovNaEe8qnCkcbSQZf2yecflXfa8ajfYjIjSLrjN3Jw6tgxnXEHQdn7V3Y40pBCFCqh3RKTDpGrJw696jxi3V_GUK5iO0SJQCo-dVq6bnrW4MLJreVp2GJQiiUTexfray9n9qDonoF2kPByBIWcjAfdgtLeNZEMXsu9tNBUzS_5POs4wRoY_bs7mKjg5wMKbl6AQ3uDM8pkFksDfzdMjXFboGQp89_a_DaPGOPzLtXy0uroD9micSH9D2SYnfC4BWfWzw3NOY"/>
+<div class="absolute top-4 left-4 bg-background/80 backdrop-blur-md px-3 py-1 rounded border border-white/10 flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]"></div>
+<span class="font-stats-code text-xs text-on-surface">12ms</span>
+</div>
+<div class="absolute top-4 right-4 bg-primary/90 text-white font-label-caps text-[10px] px-2 py-1 rounded">MATCH IN PROGRESS</div>
+<div class="absolute inset-0 bg-gradient-to-t from-background to-transparent opacity-60"></div>
+</div>
+<div class="p-md relative">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h3 class="font-headline-md text-headline-md mb-1 group-hover:text-primary transition-colors">VORTEX PRIME</h3>
+<p class="font-stats-code text-xs text-secondary-fixed-dim uppercase tracking-wider">Map: Neon District</p>
+</div>
+<div class="text-right">
+<div class="font-display-lg text-xl font-bold leading-none">6<span class="text-on-surface-variant/40">/8</span></div>
+<div class="font-label-caps text-[10px] text-on-surface-variant/60 mt-1">PLAYERS</div>
+</div>
+</div>
+<div class="flex items-center gap-2 mb-6">
+<span class="px-2 py-1 bg-white/5 border border-white/10 rounded text-[10px] font-label-caps text-on-surface-variant">RANKED</span>
+<span class="px-2 py-1 bg-white/5 border border-white/10 rounded text-[10px] font-label-caps text-on-surface-variant">CROSS-PLAY</span>
+</div>
+<button class="w-full py-4 bg-gradient-to-r from-primary to-secondary text-on-primary-container font-extrabold tracking-[0.2em] diagonal-cut transition-all hover:brightness-125 hover:shadow-primary/20 active:scale-95 group-hover:translate-y-[-2px]">
+                            JOIN MATCH
+                        </button>
+</div>
+</div>
+<!-- Room Card 2 -->
+<div class="glass-panel rounded-xl overflow-hidden group hover:border-primary/50 transition-all duration-500 hover:shadow-[0_0_30px_rgba(188,19,254,0.1)]">
+<div class="h-48 relative overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="Intense close-up of a futuristic glowing technical hangar with robotic arms and orange holographic displays. The atmosphere is dense with dust particles illuminated by sharp vertical light beams, reflecting a high-performance gaming level design with dark obsidian and technical orange accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJcv7n8DTLOV05454QbUdsgm1H9R1SUJq3STOIAYGjYZTRW_15n0qjWOPba__Bh6JEEz87Fs86yj3ou6huo11DaaWqZipdGcb2J41Fqex2OISZ5uZJCsp69a9gp0xgLcnqYtECGtMH4F1mbv9O4UMeedolRKw2jjVYKXmk29_6r8Q-ovEtL3TnvYBoE4l8fAoid1nHU_5OTrpBV4OUzs1dzfKZAxPjvQrL9PG7Mo3qx5QY8QXIUXlq6b3X97RxZEEVHadFItj8q-0"/>
+<div class="absolute top-4 left-4 bg-background/80 backdrop-blur-md px-3 py-1 rounded border border-white/10 flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]"></div>
+<span class="font-stats-code text-xs text-on-surface">24ms</span>
+</div>
+<div class="absolute top-4 right-4 bg-surface-container-high/90 text-on-surface-variant font-label-caps text-[10px] px-2 py-1 rounded border border-white/10">WAITING...</div>
+<div class="absolute inset-0 bg-gradient-to-t from-background to-transparent opacity-60"></div>
+</div>
+<div class="p-md relative">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h3 class="font-headline-md text-headline-md mb-1 group-hover:text-primary transition-colors">TITAN ECHO</h3>
+<p class="font-stats-code text-xs text-secondary-fixed-dim uppercase tracking-wider">Map: Orbital Station</p>
+</div>
+<div class="text-right">
+<div class="font-display-lg text-xl font-bold leading-none">2<span class="text-on-surface-variant/40">/12</span></div>
+<div class="font-label-caps text-[10px] text-on-surface-variant/60 mt-1">PLAYERS</div>
+</div>
+</div>
+<div class="flex items-center gap-2 mb-6">
+<span class="px-2 py-1 bg-white/5 border border-white/10 rounded text-[10px] font-label-caps text-on-surface-variant">CASUAL</span>
+<span class="px-2 py-1 bg-white/5 border border-white/10 rounded text-[10px] font-label-caps text-on-surface-variant">MIC ONLY</span>
+</div>
+<button class="w-full py-4 bg-gradient-to-r from-primary to-secondary text-on-primary-container font-extrabold tracking-[0.2em] diagonal-cut transition-all hover:brightness-125 hover:shadow-primary/20 active:scale-95 group-hover:translate-y-[-2px]">
+                            JOIN MATCH
+                        </button>
+</div>
+</div>
+<!-- Room Card 3 -->
+<div class="glass-panel rounded-xl overflow-hidden group hover:border-primary/50 transition-all duration-500 hover:shadow-[0_0_30px_rgba(188,19,254,0.1)]">
+<div class="h-48 relative overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="A dark, sleek underground laboratory with deep purple floor lighting and glass containment cells. The aesthetic is extremely clean and futuristic, featuring cold blue metals and glowing violet tech interfaces. High contrast and cinematic depth, inspired by high-end competitive esports environments." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBW1QikV64VQ7pd3gJuLyDwxs30CQpEBJ2AZvASVo1yX4hsRk9n3pZv9pq9OxnzSDiN4x5tM4L-ki_COsymPH7QasiOgM6fuAgJm_gVSf6VQervT_1eOrvFgz1Bp4dagLZiEdbMSSS-6ng3XDr0nY4oNqOPBZ1zROTzKUgdQkLMWENdfyPxHiN-Af032JveHsdEC-8ym9GUuuDLYCBdqIPj09XVAHObBKSoMYU3vuX0XBFO4kJlTovs2xvpqyaY_63Aj9Tj5Ta4VqU"/>
+<div class="absolute top-4 left-4 bg-background/80 backdrop-blur-md px-3 py-1 rounded border border-white/10 flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_#fbbf24]"></div>
+<span class="font-stats-code text-xs text-on-surface">56ms</span>
+</div>
+<div class="absolute top-4 right-4 bg-primary/90 text-white font-label-caps text-[10px] px-2 py-1 rounded">FULL</div>
+<div class="absolute inset-0 bg-gradient-to-t from-background to-transparent opacity-60"></div>
+</div>
+<div class="p-md relative">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h3 class="font-headline-md text-headline-md mb-1 group-hover:text-primary transition-colors">OMEGA ZERO</h3>
+<p class="font-stats-code text-xs text-secondary-fixed-dim uppercase tracking-wider">Map: Data Core</p>
+</div>
+<div class="text-right">
+<div class="font-display-lg text-xl font-bold leading-none">10<span class="text-on-surface-variant/40">/10</span></div>
+<div class="font-label-caps text-[10px] text-on-surface-variant/60 mt-1">PLAYERS</div>
+</div>
+</div>
+<div class="flex items-center gap-2 mb-6">
+<span class="px-2 py-1 bg-white/5 border border-white/10 rounded text-[10px] font-label-caps text-on-surface-variant">TOURNAMENT</span>
+<span class="px-2 py-1 bg-white/5 border border-white/10 rounded text-[10px] font-label-caps text-on-surface-variant">CLAN WARS</span>
+</div>
+<button class="w-full py-4 bg-white/5 text-on-surface-variant/30 font-extrabold tracking-[0.2em] diagonal-cut cursor-not-allowed border border-white/5" disabled="">
+                            ROOM FULL
+                        </button>
+</div>
+</div>
+<!-- Room Card 4 -->
+<div class="glass-panel rounded-xl overflow-hidden group hover:border-primary/50 transition-all duration-500 hover:shadow-[0_0_30px_rgba(188,19,254,0.1)]">
+<div class="h-48 relative overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="A stylized volcanic obsidian landscape with floating geometric cubes and electric blue lightning cracks across the sky. High-energy gaming environment with extreme lighting effects, sharp shadows, and a sense of aggressive high-tech competition. The mood is dark, immersive, and premium." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9nbKtLsqC9Ke_dAXwKKNd-bR1INno37xMVAhr6SD4hHqk5ECPly4O1GPyvi2UutUKhbBS7O7miSKgl1A5yKvagfAEZf87hvsBuIxsGHIimZYsMVA7X55pMyBXJ_gHLVZlhuABMUZvEev_TmupbaUpEigxg7IPYNOwvfHYayjF3UfnaixD3YaklBwZkzIZB9u-uaAqAyuChDzvY_LV2NZWu-Cl3C1sK7OZ6icZghAzl4xAze8BZXHB4TcMoSj237dqY5ZkxIo0_Ps"/>
+<div class="absolute top-4 left-4 bg-background/80 backdrop-blur-md px-3 py-1 rounded border border-white/10 flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]"></div>
+<span class="font-stats-code text-xs text-on-surface">18ms</span>
+</div>
+<div class="absolute top-4 right-4 bg-primary/90 text-white font-label-caps text-[10px] px-2 py-1 rounded">MATCH IN PROGRESS</div>
+<div class="absolute inset-0 bg-gradient-to-t from-background to-transparent opacity-60"></div>
+</div>
+<div class="p-md relative">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h3 class="font-headline-md text-headline-md mb-1 group-hover:text-primary transition-colors">FROST BYTE</h3>
+<p class="font-stats-code text-xs text-secondary-fixed-dim uppercase tracking-wider">Map: Cryo Chamber</p>
+</div>
+<div class="text-right">
+<div class="font-display-lg text-xl font-bold leading-none">4<span class="text-on-surface-variant/40">/8</span></div>
+<div class="font-label-caps text-[10px] text-on-surface-variant/60 mt-1">PLAYERS</div>
+</div>
+</div>
+<div class="flex items-center gap-2 mb-6">
+<span class="px-2 py-1 bg-white/5 border border-white/10 rounded text-[10px] font-label-caps text-on-surface-variant">SQUAD ONLY</span>
+<span class="px-2 py-1 bg-white/5 border border-white/10 rounded text-[10px] font-label-caps text-on-surface-variant">LEGENDARY</span>
+</div>
+<button class="w-full py-4 bg-gradient-to-r from-primary to-secondary text-on-primary-container font-extrabold tracking-[0.2em] diagonal-cut transition-all hover:brightness-125 hover:shadow-primary/20 active:scale-95 group-hover:translate-y-[-2px]">
+                            JOIN MATCH
+                        </button>
+</div>
+</div>
+<!-- Create Custom Room CTA -->
+<div class="relative rounded-xl overflow-hidden border border-dashed border-primary/40 group hover:border-primary transition-all duration-500 cursor-pointer flex flex-col items-center justify-center min-h-[400px] p-lg text-center bg-primary/5">
+<div class="relative mb-6">
+<div class="absolute inset-0 bg-primary/20 blur-2xl rounded-full group-hover:scale-150 transition-transform duration-700"></div>
+<span class="material-symbols-outlined text-6xl text-primary relative z-10">add_circle</span>
+</div>
+<h3 class="font-headline-md text-headline-md mb-2">CUSTOM LOBBY</h3>
+<p class="text-on-surface-variant/70 mb-8 max-w-xs">Host your own private or public arena. Configure maps, rules, and rewards.</p>
+<button class="px-8 py-3 glass-panel rounded-full font-label-caps text-label-caps text-primary border border-primary/20 group-hover:bg-primary group-hover:text-on-primary transition-all">
+                        CONFIGURE NOW
+                    </button>
+</div>
+</div>
+</main>
+</div>
+<!-- Mobile Navigation Toggle (Bottom Bar) -->
+<div class="md:hidden fixed bottom-0 left-0 right-0 h-16 glass-panel border-t border-white/10 flex justify-around items-center z-50 px-margin-mobile">
+<button class="flex flex-col items-center text-on-surface-variant/70 active:text-primary">
+<span class="material-symbols-outlined">grid_view</span>
+<span class="text-[10px] font-label-caps mt-1">Home</span>
+</button>
+<button class="flex flex-col items-center text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">sports_esports</span>
+<span class="text-[10px] font-label-caps mt-1">Lobbies</span>
+</button>
+<div class="mt-[-40px] h-14 w-14 rounded-full bg-gradient-to-br from-primary to-secondary shadow-lg flex items-center justify-center text-on-primary-container border-4 border-background">
+<span class="material-symbols-outlined">add</span>
+</div>
+<button class="flex flex-col items-center text-on-surface-variant/70">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="text-[10px] font-label-caps mt-1">Stats</span>
+</button>
+<button class="flex flex-col items-center text-on-surface-variant/70">
+<span class="material-symbols-outlined">group</span>
+<span class="text-[10px] font-label-caps mt-1">Social</span>
+</button>
+</div>
+<script>
+        // Micro-interactions and effects
+        document.querySelectorAll('.glass-panel').forEach(panel => {
+            panel.addEventListener('mousemove', (e) => {
+                const rect = panel.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                panel.style.setProperty('--mouse-x', `${x}px`);
+                panel.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+
+        // Hover bloom effect for primary buttons
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('mousedown', () => {
+                btn.style.transform = 'scale(0.95)';
+            });
+            btn.addEventListener('mouseup', () => {
+                btn.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body></html>

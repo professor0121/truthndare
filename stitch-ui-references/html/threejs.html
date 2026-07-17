@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
+  </style>
+</head>
+<body>
+<!-- STITCH_THREEJS_START:ANIMATION_2 class="fixed inset-0 w-full h-full bg-transparent" -->
+<div class="fixed inset-0 w-full h-full bg-transparent" style="display:block;">
+<script src="https://ajax.googleapis.com/ajax/libs/threejs/r125/three.min.js"></script>
+<div id="threejs-container-ANIMATION_2" style="width:100%;height:100%"></div>
+<script>
+(function() {
+  const container = document.getElementById('threejs-container-ANIMATION_2');
+  const devicePixelRatio = window.devicePixelRatio || 1;
+  const scene = new THREE.Scene();
+const width = container.clientWidth || window.innerWidth;
+const height = container.clientHeight || window.innerHeight;
+const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+renderer.setSize(width, height);
+container.appendChild(renderer.domElement);
+
+// Bottle Geometry - Combined shapes to form a realistic wine/soda bottle
+const bottleGroup = new THREE.Group();
+
+// Body
+const bodyGeom = new THREE.CylinderGeometry(0.8, 0.8, 4, 32);
+const bodyMat = new THREE.MeshPhongMaterial({ 
+    color: 0x221144, 
+    transparent: true, 
+    opacity: 0.7, 
+    shininess: 100,
+    reflectivity: 1
+});
+const body = new THREE.Mesh(bodyGeom, bodyMat);
+bottleGroup.add(body);
+
+// Shoulder
+const shoulderGeom = new THREE.SphereGeometry(0.8, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+const shoulder = new THREE.Mesh(shoulderGeom, bodyMat);
+shoulder.position.y = 2;
+bottleGroup.add(shoulder);
+
+// Neck
+const neckGeom = new THREE.CylinderGeometry(0.3, 0.3, 1.5, 32);
+const neck = new THREE.Mesh(neckGeom, bodyMat);
+neck.position.y = 2.75;
+bottleGroup.add(neck);
+
+// Cap
+const capGeom = new THREE.CylinderGeometry(0.35, 0.35, 0.4, 32);
+const capMat = new THREE.MeshPhongMaterial({ color: 0xccaa00, shininess: 100 });
+const cap = new THREE.Mesh(capGeom, capMat);
+cap.position.y = 3.5;
+bottleGroup.add(cap);
+
+// Glow Platform
+const platformGeom = new THREE.CircleGeometry(2, 64);
+const platformMat = new THREE.MeshBasicMaterial({ 
+    color: 0x8800ff, 
+    transparent: true, 
+    opacity: 0.3, 
+    side: THREE.DoubleSide 
+});
+const platform = new THREE.Mesh(platformGeom, platformMat);
+platform.rotation.x = Math.PI / 2;
+platform.position.y = -2.1;
+scene.add(platform);
+
+bottleGroup.rotation.z = Math.PI / 2;
+scene.add(bottleGroup);
+
+// Lighting
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+scene.add(ambientLight);
+const pointLight = new THREE.PointLight(0x00ccff, 2, 50);
+pointLight.position.set(5, 5, 5);
+scene.add(pointLight);
+
+camera.position.z = 10;
+camera.position.y = 2;
+camera.lookAt(0, 0, 0);
+
+let isSpinning = false;
+let spinSpeed = 0;
+let targetRotation = 0;
+
+function animate() {
+    requestAnimationFrame(animate);
+    
+    if (!isSpinning) {
+        // Floating idle animation
+        bottleGroup.position.y = Math.sin(Date.now() * 0.002) * 0.2;
+        bottleGroup.rotation.y += 0.01;
+    } else {
+        bottleGroup.rotation.y += spinSpeed;
+        spinSpeed *= 0.98; // Friction
+        if (spinSpeed < 0.01) {
+            isSpinning = false;
+            spinSpeed = 0;
+            // Dispatch event for UI
+            window.dispatchEvent(new CustomEvent('bottleStopped', { detail: { angle: bottleGroup.rotation.y } }));
+        }
+    }
+    
+    renderer.render(scene, camera);
+}
+
+animate();
+
+window.addEventListener('resize', () => {
+    const w = container.clientWidth || window.innerWidth;
+    const h = container.clientHeight || window.innerHeight;
+    renderer.setSize(w, h);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+});
+
+// Communication with UI
+window.addEventListener('spinBottle', () => {
+    isSpinning = true;
+    spinSpeed = 0.5 + Math.random() * 0.5;
+});
+})();
+</script>
+</div>
+<!-- STITCH_THREEJS_END:ANIMATION_2 -->
+</body>
+</html>

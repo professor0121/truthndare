@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store";
 import { setSpinning } from "../../store/gameSlice";
 import gsap from "gsap";
+import Button from "../ui/Button";
 
 interface BottleSpinnerProps {
   onSpinComplete?: () => void;
@@ -13,10 +14,31 @@ interface BottleSpinnerProps {
 export default function BottleSpinner({ onSpinComplete }: BottleSpinnerProps) {
   const dispatch = useDispatch();
   const activeRoom = useSelector((state: RootState) => state.room.activeRoom);
-  const spinning = useSelector((state: RootState) => state.game.spinning);
-
+  
   const bottleRef = useRef<SVGSVGElement>(null);
   const [currentRotation, setCurrentRotation] = useState(0);
+  const [radius, setRadius] = useState(260);
+
+  // Responsive radial positioning listener
+  useEffect(() => {
+    function handleResize() {
+      const w = window.innerWidth;
+      if (w < 480) {
+        setRadius(120);
+      } else if (w < 640) {
+        setRadius(150);
+      } else if (w < 1024) {
+        setRadius(190);
+      } else if (w < 1280) {
+        setRadius(220);
+      } else {
+        setRadius(260);
+      }
+    }
+    window.addEventListener("resize", handleResize);
+    handleResize();
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   if (!activeRoom) return null;
 
@@ -25,8 +47,6 @@ export default function BottleSpinner({ onSpinComplete }: BottleSpinnerProps) {
 
   // React to room game turnState changes to trigger spin automatically
   useEffect(() => {
-    // If the game is in 'choosing_type' state and we're not already spinning,
-    // it means a spin result was received. Let's animate!
     if (game.status === "playing" && game.turnState === "choosing_type" && game.currentPlayerId) {
       const targetIndex = players.findIndex((p) => p.userId === game.currentPlayerId);
       if (targetIndex !== -1) {
@@ -43,8 +63,7 @@ export default function BottleSpinner({ onSpinComplete }: BottleSpinnerProps) {
     // Calculate rotation: points on circle are spaced by 360 / playerCount
     const playerAngle = (targetIndex * 360) / playerCount;
     
-    // Add 4-5 full spins (1440 to 1800 deg) for visual flare
-    // Points upward at index 0, clockwise.
+    // Add 4 full spins (1440 deg)
     const additionalSpins = 360 * 4;
     const finalRotation = currentRotation + additionalSpins + (playerAngle - (currentRotation % 360));
     
@@ -65,67 +84,86 @@ export default function BottleSpinner({ onSpinComplete }: BottleSpinnerProps) {
   };
 
   return (
-    <div className="relative w-full max-w-[450px] aspect-square flex items-center justify-center bg-black/30 rounded-full border border-zinc-800/60 p-4">
-      {/* Outer Glowing Ring */}
-      <div className="absolute inset-0 rounded-full border border-neon-purple/20 glow-purple animate-pulse-slow pointer-events-none" />
+    <div 
+      className="relative w-full aspect-square flex items-center justify-center pointer-events-none"
+      style={{ maxWidth: "100%", maxHeight: "100%" }}
+    >
+      {/* Central bottle platform glow */}
+      <div 
+        className="absolute w-[200px] h-[200px] rounded-full bg-neon-purple/20 blur-[60px] animate-pulse pointer-events-none z-0" 
+      />
 
-      {/* Render Players in a Circle */}
+      {/* Render Players in CSS Rotate-Translate Circle */}
       {players.map((player, idx) => {
         const angle = (idx * 360) / playerCount;
-        // Convert polar coordinates to Cartesian for layout positioning
-        const radius = 38; // percentage radius
-        const x = 50 + radius * Math.sin((angle * Math.PI) / 180);
-        const y = 50 - radius * Math.cos((angle * Math.PI) / 180);
-
         const isCurrentTurn = game.currentPlayerId === player.userId;
+
+        // Custom style using pure CSS transform rotation & Y translation
+        const circularTransform = {
+          transform: `rotate(${angle}deg) translateY(-${radius}px) rotate(-${angle}deg)`,
+        };
+
+        const avatarUrl = player.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${player.username}`;
+
+        // Dynamic status rank tag
+        const isOnline = player.isOnline;
+        const rank = player.score && player.score >= 100 ? "MASTER" : "ROOKIE";
 
         return (
           <div
             key={player.userId}
-            className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center z-10 transition-all duration-300"
-            style={{ left: `${x}%`, top: `${y}%` }}
+            className="absolute z-10 transition-all duration-500 ease-out pointer-events-auto"
+            style={circularTransform}
           >
-            {/* Active Turn Halo Ring */}
-            <div
-              className={`p-1 rounded-full transition-all duration-500 ${
+            {/* Player Stream Card matching Stitch specs */}
+            <div 
+              className={`w-20 sm:w-24 md:w-28 aspect-[3/4] rounded-2xl overflow-hidden glass-panel border transition-all duration-300 ${
                 isCurrentTurn
-                  ? "bg-gradient-to-r from-neon-purple to-neon-pink glow-pink scale-110"
-                  : player.isOnline 
-                    ? "bg-zinc-800 border border-zinc-700" 
-                    : "bg-zinc-950 border border-zinc-900 opacity-40"
+                  ? "speaking-indicator border-neon-purple scale-105 shadow-[0_0_20px_rgba(188,19,254,0.3)] z-20"
+                  : isOnline
+                    ? "border-white/10 hover:border-white/30"
+                    : "border-white/5 opacity-55"
               }`}
             >
-              <img
-                src={player.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${player.username}`}
-                alt={player.username}
-                className="w-10 h-10 rounded-full bg-zinc-900"
-              />
+              <div className="h-full relative bg-zinc-950/60">
+                <img
+                  src={avatarUrl}
+                  alt={player.username}
+                  className="w-full h-full object-cover opacity-80"
+                />
+
+                {/* Status bottom overlay info */}
+                <div className="absolute bottom-0 inset-x-0 p-2 bg-gradient-to-t from-black/90 to-transparent text-left">
+                  <p className="font-headline text-[9px] text-white truncate font-extrabold uppercase tracking-wide">
+                    {player.username}
+                  </p>
+                  
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <span 
+                      className={`w-1 h-1 rounded-full shrink-0 ${
+                        isOnline ? "bg-neon-cyan shadow-[0_0_6px_#00e5ff]" : "bg-zinc-600"
+                      }`} 
+                    />
+                    <span className="text-[7px] font-headline font-bold text-neon-cyan tracking-widest font-mono uppercase">
+                      {isCurrentTurn ? "TURN" : rank}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
-            
-            {/* Username Badge */}
-            <span
-              className={`text-[10px] font-bold mt-1.5 px-2 py-0.5 rounded-full select-none max-w-[70px] truncate ${
-                isCurrentTurn
-                  ? "bg-neon-purple text-white text-glow-purple"
-                  : "bg-black/60 text-zinc-400 border border-zinc-900"
-              }`}
-            >
-              {player.username}
-            </span>
-            <span className="text-[9px] text-zinc-500 font-semibold">{player.score} pts</span>
           </div>
         );
       })}
 
-      {/* Neon Center Dial Grid */}
-      <div className="absolute w-[200px] h-[200px] rounded-full bg-zinc-950/80 border border-zinc-800/80 flex items-center justify-center z-0">
-        <div className="absolute inset-4 rounded-full border border-dashed border-zinc-800" />
-        <div className="absolute inset-12 rounded-full border border-neon-blue/10 glow-blue animate-spin-slow pointer-events-none" />
+      {/* Central Dial with Neon grids & Bottle SVG */}
+      <div className="absolute w-[180px] h-[180px] rounded-full bg-zinc-950/80 border border-zinc-900 flex items-center justify-center z-20 shadow-[0_0_40px_rgba(188,19,254,0.15)] pointer-events-auto">
+        <div className="absolute inset-4 rounded-full border border-dashed border-zinc-800/80" />
+        <div className="absolute inset-10 rounded-full border border-neon-blue/10 glow-blue animate-spin-slow pointer-events-none" />
 
         {/* Central Bottle SVG */}
         <svg
           ref={bottleRef}
-          className="w-[120px] h-[120px] z-20 cursor-default select-none pointer-events-none"
+          className="w-[100px] h-[100px] z-30 select-none pointer-events-none"
           viewBox="0 0 100 100"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -145,25 +183,25 @@ export default function BottleSpinner({ onSpinComplete }: BottleSpinnerProps) {
           <path
             d="M50 15 C50 15 45 28 45 35 L45 75 C45 80 47 85 50 85 C53 85 55 80 55 75 L55 35 C55 35 50 28 50 15 Z"
             fill="url(#bottle-grad)"
-            stroke="#a855f7"
-            strokeWidth="2"
+            stroke="#bc13fe"
+            strokeWidth="2.5"
             filter="url(#neon-glow)"
           />
 
           {/* Bottle Cap */}
-          <rect x="47" y="10" width="6" height="5" rx="1" fill="#ec4899" />
+          <rect x="47" y="10" width="6" height="5" rx="1" fill="#ff2d55" />
 
-          {/* Liquid Indicator lines */}
-          <path d="M47 50 H53" stroke="#06b6d4" strokeWidth="1.5" strokeDasharray="1 1" />
-          <path d="M46 60 H54" stroke="#06b6d4" strokeWidth="1.5" />
-          <path d="M46 70 H54" stroke="#06b6d4" strokeWidth="1.5" />
+          {/* Liquid Indicators */}
+          <path d="M47 50 H53" stroke="#00e5ff" strokeWidth="1.5" strokeDasharray="1 1" />
+          <path d="M46 60 H54" stroke="#00e5ff" strokeWidth="1.5" />
+          <path d="M46 70 H54" stroke="#00e5ff" strokeWidth="1.5" />
 
           {/* Gradients */}
           <defs>
             <linearGradient id="bottle-grad" x1="50" y1="10" x2="50" y2="90" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#c084fc" />
-              <stop offset="50%" stopColor="#8644a2" />
-              <stop offset="100%" stopColor="#1e1b4b" />
+              <stop offset="0%" stopColor="#ebb2ff" />
+              <stop offset="50%" stopColor="#bc13fe" />
+              <stop offset="100%" stopColor="#141319" />
             </linearGradient>
           </defs>
         </svg>

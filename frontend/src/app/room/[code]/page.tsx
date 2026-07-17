@@ -8,16 +8,19 @@ import { setRoom, clearRoom } from "../../../store/roomSlice";
 import { setSecondsLeft, stopTimer } from "../../../store/gameSlice";
 import { addMessage, addReaction, clearMessages, clearReactions } from "../../../store/chatSlice";
 import { api } from "../../../lib/api";
-import { getSocket, disconnectSocket } from "../../../lib/socket";
+import { getSocket } from "../../../lib/socket";
 import BottleSpinner from "../../../components/game/BottleSpinner";
 import TurnConsole from "../../../components/game/TurnConsole";
 import QuestionCard from "../../../components/game/QuestionCard";
 import RoomSidebar from "../../../components/room/RoomSidebar";
 import EmojiOverlay from "../../../components/game/EmojiOverlay";
-import { 
-  ArrowLeft, Copy, Check, Play, LogOut, Mic, MicOff, Users,
-  Crown, Sparkles, Volume2, ShieldAlert, Trophy, Award
-} from "lucide-react";
+import GameHeader from "../../../components/game/GameHeader";
+import LobbyView from "../../../components/game/LobbyView";
+import PodiumView from "../../../components/game/PodiumView";
+import BackgroundShader from "../../../components/ui/BackgroundShader";
+import Navbar from "../../../components/ui/Navbar";
+import Sidebar from "../../../components/ui/Sidebar";
+import { ShieldAlert } from "lucide-react";
 import gsap from "gsap";
 
 export default function RoomPage({ params }: { params: Promise<{ code: string }> }) {
@@ -37,6 +40,9 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
   const localStreamRef = useRef<MediaStream | null>(null);
   const peersRef = useRef<Map<string, RTCPeerConnection>>(new Map());
   const remoteAudiosContainerRef = useRef<HTMLDivElement>(null);
+  const queuedCandidatesRef = useRef<Map<string, RTCIceCandidateInit[]>>(new Map());
+
+  const arenaContentRef = useRef<HTMLElement>(null);
 
   // 1. Establish Socket Connection & Join Session
   useEffect(() => {
@@ -108,7 +114,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
       dispatch(setSecondsLeft(secondsLeft));
     });
 
-    socket.on("timer_expired", (data) => {
+    socket.on("timer_expired", () => {
       dispatch(stopTimer());
     });
 
@@ -152,6 +158,17 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
     fetchRoomDetails();
   }, [code]);
 
+  // Entrance animations
+  useEffect(() => {
+    if (arenaContentRef.current && activeRoom) {
+      gsap.fromTo(
+        arenaContentRef.current,
+        { opacity: 0, scale: 0.98 },
+        { opacity: 1, scale: 1, duration: 0.6, ease: "power2.out" }
+      );
+    }
+  }, [activeRoom?.code]);
+
   // WebRTC Signal Listener
   useEffect(() => {
     if (!accessToken) return;
@@ -163,14 +180,46 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
       const pc = peersRef.current.get(senderUserId);
       
       if (signalData.type === "offer") {
+        if (pc && pc.signalingState === "have-local-offer" && user && user._id < senderUserId) {
+          console.log("Ignoring offer due to WebRTC glare; we have smaller ID");
+          return;
+        }
         await handleOffer(senderUserId, signalData.sdp);
       } else if (signalData.type === "answer") {
         if (pc) {
           await pc.setRemoteDescription(new RTCSessionDescription(signalData.sdp));
+          const extendedPc = pc as any;
+          if (extendedPc.iceCandidatesQueue) {
+            for (const candidate of extendedPc.iceCandidatesQueue) {
+              try {
+                await extendedPc.addIceCandidate(new RTCIceCandidate(candidate));
+              } catch (e) {
+                console.error("Error adding queued ice candidate:", e);
+              }
+            }
+            extendedPc.iceCandidatesQueue = [];
+          }
         }
       } else if (signalData.type === "candidate") {
         if (pc) {
-          await pc.addIceCandidate(new RTCIceCandidate(signalData.candidate));
+          if (pc.remoteDescription) {
+            try {
+              await pc.addIceCandidate(new RTCIceCandidate(signalData.candidate));
+            } catch (e) {
+              console.error("Error adding ice candidate:", e);
+            }
+          } else {
+            const extendedPc = pc as any;
+            if (!extendedPc.iceCandidatesQueue) {
+              extendedPc.iceCandidatesQueue = [];
+            }
+            extendedPc.iceCandidatesQueue.push(signalData.candidate);
+          }
+        } else {
+          if (!queuedCandidatesRef.current.has(senderUserId)) {
+            queuedCandidatesRef.current.set(senderUserId, []);
+          }
+          queuedCandidatesRef.current.get(senderUserId)!.push(signalData.candidate);
         }
       }
     };
@@ -179,7 +228,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
     return () => {
       socket.off("webrtc_signal", handleWebRTCSignal);
     };
-  }, [isVoiceActive, accessToken]);
+  }, [isVoiceActive, accessToken, user]);
 
   // WebRTC Implementation
   const handleOffer = async (senderUserId: string, sdp: RTCSessionDescriptionInit) => {
@@ -187,7 +236,18 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
     const pc = createPeerConnection(senderUserId);
     await pc.setRemoteDescription(new RTCSessionDescription(sdp));
     
-    // Add local mic tracks
+    const extendedPc = pc as any;
+    if (extendedPc.iceCandidatesQueue) {
+      for (const candidate of extendedPc.iceCandidatesQueue) {
+        try {
+          await extendedPc.addIceCandidate(new RTCIceCandidate(candidate));
+        } catch (e) {
+          console.error("Error adding queued ice candidate:", e);
+        }
+      }
+      extendedPc.iceCandidatesQueue = [];
+    }
+
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach((track) => {
         pc.addTrack(track, localStreamRef.current!);
@@ -205,16 +265,18 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
   };
 
   const createPeerConnection = (targetUserId: string): RTCPeerConnection => {
-    // Close existing connection if active
     if (peersRef.current.has(targetUserId)) {
       peersRef.current.get(targetUserId)?.close();
     }
 
     const pc = new RTCPeerConnection({
-      iceServers: [{ urls: "stun:stun.l.google.com:19002" }]
-    });
+      iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+    }) as any;
 
-    pc.onicecandidate = (event) => {
+    pc.iceCandidatesQueue = queuedCandidatesRef.current.get(targetUserId) || [];
+    queuedCandidatesRef.current.delete(targetUserId);
+
+    pc.onicecandidate = (event: RTCPeerConnectionIceEvent) => {
       if (event.candidate) {
         const socket = getSocket(accessToken || "");
         socket.emit("webrtc_signal", {
@@ -225,10 +287,8 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
       }
     };
 
-    pc.ontrack = (event) => {
-      // Create audio element to play partner's stream
+    pc.ontrack = (event: RTCTrackEvent) => {
       if (remoteAudiosContainerRef.current) {
-        // Prevent duplicate audios
         const existingAudio = document.getElementById(`audio-${targetUserId}`) as HTMLAudioElement;
         if (existingAudio) {
           existingAudio.srcObject = event.streams[0];
@@ -249,12 +309,10 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
 
   const startVoiceChat = async () => {
     try {
-      // 1. Get user mic stream
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       localStreamRef.current = stream;
       setIsVoiceActive(true);
 
-      // 2. Establish connections to all online players (excluding ourselves)
       if (activeRoom && user) {
         const socket = getSocket(accessToken || "");
         const otherOnlinePlayers = activeRoom.players.filter(
@@ -264,12 +322,10 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
         for (const player of otherOnlinePlayers) {
           const pc = createPeerConnection(player.userId);
           
-          // Add local track
           stream.getTracks().forEach((track) => {
             pc.addTrack(track, stream);
           });
 
-          // Create Offer
           const offer = await pc.createOffer();
           await pc.setLocalDescription(offer);
 
@@ -287,17 +343,14 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
   };
 
   const cleanupVoiceChat = () => {
-    // Stop local mic track
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach((track) => track.stop());
       localStreamRef.current = null;
     }
 
-    // Close peer connections
     peersRef.current.forEach((pc) => pc.close());
     peersRef.current.clear();
 
-    // Clear audio elements
     if (remoteAudiosContainerRef.current) {
       remoteAudiosContainerRef.current.innerHTML = "";
     }
@@ -395,261 +448,117 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
   const isHost = hostId === user._id;
 
   return (
-    <div className="min-h-screen bg-radial from-zinc-950 via-black to-zinc-950 flex flex-col relative">
+    <div className="h-screen bg-[#0e0d13] text-[#e5e1ea] font-sans selection:bg-neon-purple/30 overflow-hidden relative">
+      <BackgroundShader />
       <EmojiOverlay />
+      <Navbar />
+      <Sidebar />
 
-      {/* Hidden Container for remote audios */}
+      {/* Hidden Container for remote WebRTC audios */}
       <div ref={remoteAudiosContainerRef} className="hidden" />
 
-      {/* Header bar */}
-      <header className="w-full glass border-b border-zinc-800/80 px-6 py-4 flex items-center justify-between z-20">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleLeaveRoom}
-            className="p-2 rounded-lg border border-zinc-800 hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all cursor-pointer"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </button>
-          
-          <div className="text-left">
-            <div className="flex items-center gap-2">
-              <span className="font-extrabold text-sm tracking-wider uppercase text-zinc-300">
-                Arena Room
-              </span>
-              <button
-                onClick={handleCopyCode}
-                className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-[10px] text-zinc-300 hover:text-white transition-all cursor-pointer font-bold font-mono tracking-widest"
-              >
-                {code}
-                {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
-              </button>
-            </div>
-            <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold mt-0.5">
-              Status: {status}
-            </p>
+      {/* Top Header bar placed in play zone */}
+      <div className="lg:pl-72 xl:pr-80 pt-16 sticky top-0 z-30">
+        <GameHeader
+          code={code}
+          copied={copied}
+          status={status}
+          isVoiceActive={isVoiceActive}
+          handleLeaveRoom={handleLeaveRoom}
+          handleCopyCode={handleCopyCode}
+          toggleVoiceChat={toggleVoiceChat}
+        />
+      </div>
+
+      {/* Main gameplay area margins fit inside Fixed Navigation Shell */}
+      <main 
+        ref={arenaContentRef}
+        className="ml-0 lg:ml-72 mr-0 xl:mr-80 pt-4 pb-20 px-6 h-[calc(100vh-120px)] flex flex-col items-center justify-center relative z-10"
+      >
+        {/* 1. LOBBY WAITING SCREEN */}
+        {status === "lobby" && (
+          <div className="flex-grow flex items-center justify-center py-6 w-full max-w-md">
+            <LobbyView
+              players={players}
+              isHost={isHost}
+              loading={loading}
+              handleStartGame={handleStartGame}
+            />
           </div>
-        </div>
-
-        {/* Action Controls */}
-        <div className="flex items-center gap-3">
-          {/* Voice Chat Toggle */}
-          <button
-            onClick={toggleVoiceChat}
-            className={`p-2.5 rounded-lg border flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider transition-all select-none cursor-pointer ${
-              isVoiceActive
-                ? "bg-neon-blue/20 border-neon-blue text-neon-cyan glow-blue"
-                : "border-zinc-800 bg-zinc-900 text-zinc-400 hover:text-white"
-            }`}
-          >
-            {isVoiceActive ? <Mic className="w-4.5 h-4.5" /> : <MicOff className="w-4.5 h-4.5" />}
-            <span className="hidden sm:inline">{isVoiceActive ? "Voice On" : "Voice Off"}</span>
-          </button>
-
-          {/* Leave Button */}
-          <button
-            onClick={handleLeaveRoom}
-            className="p-2.5 rounded-lg border border-zinc-800 hover:bg-red-950/20 hover:border-red-900/40 text-zinc-400 hover:text-red-400 transition-all select-none cursor-pointer"
-          >
-            <LogOut className="w-4.5 h-4.5" />
-          </button>
-        </div>
-      </header>
-
-      {/* Main Content Layout */}
-      <main className="flex-1 flex flex-col lg:flex-row p-6 gap-6 max-w-7xl mx-auto w-full overflow-hidden">
-        
-        {/* LEFT COLUMN: Main Arena Playboard */}
-        <div className="flex-1 flex flex-col items-center justify-center space-y-6">
-          
-          {/* 1. LOBBY VIEW */}
-          {status === "lobby" && (
-            <div className="w-full max-w-md glass-card p-6 rounded-2xl glow-purple text-center space-y-6">
-              <div className="space-y-2">
-                <Users className="w-12 h-12 text-neon-purple mx-auto mb-2 animate-pulse" />
-                <h2 className="text-2xl font-black text-white uppercase tracking-wider">Lobby Waiting Room</h2>
-                <p className="text-xs text-zinc-400">Invite friends using the code at the top. Need at least 2 players to start.</p>
-              </div>
-
-              {/* Joined Players Lists */}
-              <div className="space-y-2.5">
-                <h3 className="text-[10px] text-zinc-500 uppercase tracking-widest font-black text-left">
-                  Joined Players ({players.length})
-                </h3>
-                <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
-                  {players.map((p) => (
-                    <div
-                      key={p.userId}
-                      className="glass border border-zinc-800/80 px-4.5 py-3.5 rounded-xl flex items-center justify-between"
-                    >
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={p.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${p.username}`}
-                          alt={p.username}
-                          className="w-9 h-9 rounded-full bg-zinc-950 border border-zinc-800"
-                        />
-                        <div className="text-left">
-                          <span className="font-bold text-sm text-zinc-200 flex items-center gap-1.5">
-                            {p.username}
-                            {p.isHost && <Crown className="w-3.5 h-3.5 text-yellow-500 fill-current" />}
-                          </span>
-                          <span className="text-[10px] text-zinc-500 font-semibold uppercase">
-                            XP: {p.score || 0}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Online Presence light */}
-                      <span
-                        className={`w-2.5 h-2.5 rounded-full ${
-                          p.isOnline ? "bg-neon-green glow-green" : "bg-zinc-800"
-                        }`}
-                        title={p.isOnline ? "Online" : "Offline"}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Start game actions */}
-              {isHost ? (
-                <button
-                  onClick={handleStartGame}
-                  disabled={players.length < 2 || loading}
-                  className="w-full py-4 flex items-center justify-center gap-2 text-sm font-black uppercase tracking-wider text-black bg-neon-green hover:brightness-110 active:scale-[0.98] transition-all glow-green select-none cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  <Play className="w-5 h-5 fill-current" />
-                  {loading ? "Starting..." : "Start Session Arena"}
-                </button>
-              ) : (
-                <div className="p-3 bg-zinc-950/60 border border-zinc-900 rounded-xl text-center">
-                  <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider animate-pulse-slow">
-                    Waiting for Lobby Host to Start Game...
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* 2. PLAYING STAGE */}
-          {status === "playing" && (
-            <div className="w-full flex flex-col items-center justify-center space-y-6">
-              
-              {/* Turn Header status info */}
-              <div className="text-center">
-                <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-zinc-900 border border-zinc-800 text-zinc-400 rounded-full">
-                  Round {game.currentRound}
-                </span>
-                
-                {/* Host Control Actions */}
-                {isHost && game.turnState === "selecting" && (
-                  <button
-                    onClick={handleSpinBottle}
-                    disabled={loading}
-                    className="mt-4 px-6 py-2.5 bg-gradient-to-r from-neon-purple to-neon-pink text-white text-xs font-black uppercase tracking-wider rounded-xl hover:brightness-110 active:scale-95 transition-all cursor-pointer shadow-[0_0_15px_rgba(168,85,247,0.4)]"
-                  >
-                    {loading ? "Spinning..." : "Spin Bottle"}
-                  </button>
-                )}
-              </div>
-
-              {/* Bottle Spinner Board */}
-              <BottleSpinner />
-
-              {/* Challenge Display & Action controls */}
-              <div className="w-full flex flex-col items-center gap-4">
-                <QuestionCard
-                  type={game.selectedType}
-                  text={game.currentQuestion?.text}
-                  visible={game.turnState === "answering"}
-                />
-                
-                <TurnConsole roomCode={code} />
-              </div>
-
-              {/* Host End Game Option */}
-              {isHost && (
-                <button
-                  onClick={handleEndGame}
-                  className="text-[10px] font-bold uppercase tracking-wider text-red-500 hover:text-red-400 cursor-pointer"
-                >
-                  Conclude Game Session
-                </button>
-              )}
-
-            </div>
-          )}
-
-          {/* 3. FINISHED / GAME COMPLETED PODIUM */}
-          {status === "finished" && (
-            <div className="w-full max-w-md glass-card p-6 rounded-2xl glow-purple text-center space-y-6">
-              <div className="space-y-2">
-                <Trophy className="w-14 h-14 text-yellow-500 mx-auto mb-2 animate-bounce" />
-                <h2 className="text-2xl font-black text-white uppercase tracking-wider text-glow-purple">
-                  Session Completed!
-                </h2>
-                <p className="text-xs text-zinc-400">Final scores and winner podium standing.</p>
-              </div>
-
-              {/* Standings table */}
-              <div className="space-y-2 text-left">
-                <h3 className="text-[10px] text-zinc-500 uppercase tracking-widest font-black">
-                  Final Standings
-                </h3>
-                
-                <div className="space-y-2">
-                  {[...players]
-                    .sort((a, b) => b.score - a.score)
-                    .map((p, idx) => {
-                      const isWinner = game.winnerId === p.userId;
-                      return (
-                        <div
-                          key={p.userId}
-                          className={`glass border px-4 py-3 rounded-xl flex items-center justify-between ${
-                            isWinner ? "border-yellow-500/50 bg-yellow-950/10" : "border-zinc-800"
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="font-bold font-mono text-sm text-zinc-400 w-5">
-                              #{idx + 1}
-                            </div>
-                            <img
-                              src={p.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${p.username}`}
-                              alt={p.username}
-                              className="w-8 h-8 rounded-full bg-zinc-950 border border-zinc-800"
-                            />
-                            <span className="font-bold text-sm text-zinc-200 flex items-center gap-1.5">
-                              {p.username}
-                              {isWinner && <Award className="w-4 h-4 text-yellow-500 fill-current" />}
-                            </span>
-                          </div>
-                          <span className="font-bold text-sm text-white">{p.score} pts</span>
-                        </div>
-                      );
-                    })}
-                </div>
-              </div>
-
-              {/* Action options */}
-              <button
-                onClick={() => {
-                  dispatch(clearRoom());
-                  router.push("/dashboard");
-                }}
-                className="w-full py-3 text-xs font-bold uppercase tracking-wider text-black bg-neon-cyan hover:bg-cyan-300 rounded-lg active:scale-95 transition-all cursor-pointer shadow-[0_0_10px_rgba(6,182,212,0.3)]"
-              >
-                Return to Dashboard
-              </button>
-            </div>
-          )}
-
-        </div>
-
-        {/* RIGHT COLUMN: Sidebar Comms Chat log (Always visible except finished) */}
-        {status !== "finished" && (
-          <RoomSidebar roomCode={code} />
         )}
 
+        {/* 2. PLAYING ACTIVE ARENA */}
+        {status === "playing" && (
+          <div className="w-full h-full flex flex-col items-center justify-between py-2 overflow-hidden">
+            
+            {/* Top Stage Indicators */}
+            <div className="text-center shrink-0">
+              <span className="text-[10px] font-headline font-black uppercase tracking-widest px-3 py-1 bg-zinc-900 border border-zinc-800 text-zinc-400 rounded-full">
+                Round {game.currentRound}
+              </span>
+              
+              {/* Host actions */}
+              {isHost && game.turnState === "selecting" && (
+                <button
+                  onClick={handleSpinBottle}
+                  disabled={loading}
+                  className="mt-2 block mx-auto px-5 py-2 bg-gradient-to-r from-neon-purple to-neon-pink text-white text-[9px] font-headline font-black uppercase tracking-wider rounded-xl hover:brightness-110 active:scale-95 transition-all cursor-pointer shadow-[0_0_15px_rgba(168,85,247,0.4)]"
+                >
+                  {loading ? "Spinning..." : "Spin Bottle"}
+                </button>
+              )}
+            </div>
+
+            {/* Spinner Container */}
+            <div className="flex-1 flex items-center justify-center overflow-hidden min-h-0 w-full">
+              <BottleSpinner />
+            </div>
+
+            {/* AI cards and Console Controllers */}
+            <div className="w-full shrink-0 flex flex-col items-center gap-3.5 mt-4">
+              <QuestionCard
+                type={game.selectedType}
+                text={game.currentQuestion?.text}
+                visible={game.turnState === "answering"}
+              />
+              
+              <TurnConsole roomCode={code} />
+            </div>
+
+            {/* Host Conclude action */}
+            {isHost && (
+              <button
+                onClick={handleEndGame}
+                className="text-[9px] font-headline font-bold uppercase tracking-wider text-red-500 hover:text-red-400 cursor-pointer mt-2 shrink-0"
+              >
+                Conclude Game Session
+              </button>
+            )}
+
+          </div>
+        )}
+
+        {/* 3. FINISHED PODIUM VIEW */}
+        {status === "finished" && (
+          <div className="flex-grow flex items-center justify-center py-6 w-full max-w-md">
+            <PodiumView
+              players={players}
+              game={game}
+              handleReturnToDashboard={() => {
+                dispatch(clearRoom());
+                router.push("/dashboard");
+              }}
+            />
+          </div>
+        )}
       </main>
+
+      {/* Right Column: Live Chat Sidebar placed fixed on right */}
+      {status !== "finished" && (
+        <div className="fixed right-3 top-20 bottom-3 w-80 hidden xl:flex z-40">
+          <RoomSidebar roomCode={code} />
+        </div>
+      )}
     </div>
   );
 }
