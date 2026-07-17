@@ -149,10 +149,6 @@ class RoomService {
       throw new ApiError(404, "Room not found or game has already finished.");
     }
 
-    if (room.status !== "lobby") {
-      throw new ApiError(400, "Cannot join this room. Game is already in progress.");
-    }
-
     // Check if player is already inside this specific room
     const existingPlayer = room.players.find((p) => p.userId === userIdStr);
     if (existingPlayer) {
@@ -162,6 +158,10 @@ class RoomService {
         await room.save();
       }
       return room;
+    }
+
+    if (room.status !== "lobby") {
+      throw new ApiError(400, "Cannot join this room. Game is already in progress.");
     }
 
     // Check if user is inside ANY OTHER active room

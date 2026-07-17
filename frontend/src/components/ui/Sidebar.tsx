@@ -33,7 +33,7 @@ export default function Sidebar({ onCreateRoom }: SidebarProps) {
     router.push("/");
   };
 
-  const userScore = user?.score || 0;
+  const userScore = user?.xp || 0;
   // Calculate Rank Title
   let rankTitle = "Rookie";
   let xpProgress = (userScore % 1000) / 10; // percent of current 1000 XP tier

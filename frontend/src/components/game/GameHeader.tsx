@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ArrowLeft, Copy, Check, Mic, MicOff, LogOut } from "lucide-react";
+import { ArrowLeft, Copy, Check, Mic, MicOff, Video, VideoOff, LogOut } from "lucide-react";
 import Button from "../ui/Button";
 
 interface GameHeaderProps {
@@ -9,9 +9,11 @@ interface GameHeaderProps {
   copied: boolean;
   status: string;
   isVoiceActive: boolean;
+  isVideoActive: boolean;
   handleLeaveRoom: () => void;
   handleCopyCode: () => void;
   toggleVoiceChat: () => void;
+  toggleVideoChat: () => void;
 }
 
 export default function GameHeader({
@@ -19,9 +21,11 @@ export default function GameHeader({
   copied,
   status,
   isVoiceActive,
+  isVideoActive,
   handleLeaveRoom,
   handleCopyCode,
   toggleVoiceChat,
+  toggleVideoChat,
 }: GameHeaderProps) {
   return (
     <header className="w-full glass border-b border-zinc-800/80 px-6 py-3 flex items-center justify-between z-20 shrink-0 h-[64px]">
@@ -69,6 +73,21 @@ export default function GameHeader({
         >
           {isVoiceActive ? <Mic className="w-4 h-4 mr-1" /> : <MicOff className="w-4 h-4 mr-1" />}
           <span className="hidden sm:inline">{isVoiceActive ? "Voice On" : "Voice Off"}</span>
+        </Button>
+
+        {/* Video Chat Toggle */}
+        <Button
+          onClick={toggleVideoChat}
+          variant={isVideoActive ? "ghost" : "secondary"}
+          size="sm"
+          className={
+            isVideoActive
+              ? "bg-neon-pink/20 border-neon-pink text-neon-pink glow-pink hover:bg-neon-pink/30"
+              : "border-zinc-800 bg-zinc-900 text-zinc-400 hover:text-white"
+          }
+        >
+          {isVideoActive ? <Video className="w-4 h-4 mr-1" /> : <VideoOff className="w-4 h-4 mr-1" />}
+          <span className="hidden sm:inline">{isVideoActive ? "Video On" : "Video Off"}</span>
         </Button>
 
         {/* Leave Button */}

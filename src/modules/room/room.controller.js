@@ -58,10 +58,19 @@ const getPublicLobbies = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, lobbies, "Public lobbies list retrieved."));
 });
 
+const getActiveRoom = asyncHandler(async (req, res) => {
+  const room = await RoomService.findActiveRoomByUserId(req.user._id);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, room || null, "Active room retrieved successfully."));
+});
+
 export {
   createRoom,
   joinRoom,
   leaveRoom,
   getRoomDetails,
-  getPublicLobbies
+  getPublicLobbies,
+  getActiveRoom
 };

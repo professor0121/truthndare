@@ -55,6 +55,7 @@ export default function Dashboard() {
   // Feedback alerts
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  const [activeRoomData, setActiveRoomData] = useState<any>(null);
 
   // Guest conversion form
   const [convertEmail, setConvertEmail] = useState("");
@@ -74,6 +75,7 @@ export default function Dashboard() {
   useEffect(() => {
     if (isAuthenticated) {
       fetchLobbies();
+      fetchActiveRoom();
     }
   }, [isAuthenticated]);
 
@@ -81,12 +83,23 @@ export default function Dashboard() {
   useEffect(() => {
     if (mainContentRef.current) {
       gsap.fromTo(
-        mainContentRef.current,
-        { opacity: 0, y: 15 },
-        { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }
+          mainContentRef.current,
+          { opacity: 0, y: 15 },
+          { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }
       );
     }
   }, [isAuthenticated]);
+
+  const fetchActiveRoom = async () => {
+    try {
+      const response = await api.get("/rooms/active");
+      if (response.data?.success && response.data.data) {
+        setActiveRoomData(response.data.data);
+      }
+    } catch (err: any) {
+      console.error("Failed to fetch active room:", err.message);
+    }
+  };
 
   const fetchLobbies = async () => {
     try {
@@ -246,6 +259,42 @@ export default function Dashboard() {
             >
               Secure Account
             </Button>
+          </div>
+        )}
+
+        {/* Rejoin active room banner */}
+        {activeRoomData && (
+          <div className="glass border border-neon-blue/30 bg-radial from-neon-blue/[0.04] to-transparent p-4 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 mb-6 text-left shadow-[0_0_20px_rgba(0,229,255,0.1)]">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <div className="absolute inset-0 bg-neon-blue/30 blur-md rounded-full animate-ping"></div>
+                <Gamepad2 className="w-6 h-6 text-neon-blue shrink-0 relative z-10" />
+              </div>
+              <div>
+                <h4 className="text-xs font-headline font-extrabold text-white uppercase tracking-wider flex items-center gap-1.5">
+                  Match In Progress
+                  <span className="px-1.5 py-0.5 rounded bg-neon-blue/20 text-[9px] font-mono text-neon-cyan font-bold tracking-widest uppercase">
+                    {activeRoomData.code}
+                  </span>
+                </h4>
+                <p className="text-[10px] text-zinc-400 leading-normal mt-0.5">
+                  You are currently in an active game session. Rejoin to continue playing!
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                onClick={() => {
+                  dispatch(setRoom(activeRoomData));
+                  router.push(`/room/${activeRoomData.code}`);
+                }}
+                variant="valorant"
+                size="sm"
+                className="text-[9px] px-4 py-2 tracking-wider uppercase font-bold shadow-[0_0_10px_rgba(0,229,255,0.2)]"
+              >
+                Rejoin Match
+              </Button>
+            </div>
           </div>
         )}
 

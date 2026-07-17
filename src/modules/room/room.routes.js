@@ -4,7 +4,8 @@ import {
   joinRoom,
   leaveRoom,
   getRoomDetails,
-  getPublicLobbies
+  getPublicLobbies,
+  getActiveRoom
 } from "./room.controller.js";
 import {
   startGame,
@@ -26,6 +27,7 @@ router.route("/create").post(validate(createRoomSchema), createRoom);
 router.route("/join").post(validate(joinRoomSchema), joinRoom);
 router.route("/leave").post(leaveRoom); // expects { code } in body
 router.route("/public").get(getPublicLobbies);
+router.route("/active").get(getActiveRoom);
 router.route("/code/:code").get(getRoomDetails);
 
 // Game Control routes

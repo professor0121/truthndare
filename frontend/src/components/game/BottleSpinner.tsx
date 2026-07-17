@@ -7,13 +7,47 @@ import { setSpinning } from "../../store/gameSlice";
 import gsap from "gsap";
 import Button from "../ui/Button";
 
-interface BottleSpinnerProps {
-  onSpinComplete?: () => void;
+interface VideoFeedProps {
+  stream: MediaStream;
+  muted?: boolean;
 }
 
-export default function BottleSpinner({ onSpinComplete }: BottleSpinnerProps) {
+function VideoFeed({ stream, muted = false }: VideoFeedProps) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [stream]);
+
+  return (
+    <video
+      ref={videoRef}
+      autoPlay
+      playsInline
+      muted={muted}
+      className="w-full h-full object-cover"
+    />
+  );
+}
+
+interface BottleSpinnerProps {
+  onSpinComplete?: () => void;
+  localStream?: MediaStream | null;
+  remoteStreams?: Record<string, MediaStream>;
+  onPlayerClick?: (userId: string) => void;
+}
+
+export default function BottleSpinner({
+  onSpinComplete,
+  localStream,
+  remoteStreams = {},
+  onPlayerClick,
+}: BottleSpinnerProps) {
   const dispatch = useDispatch();
   const activeRoom = useSelector((state: RootState) => state.room.activeRoom);
+  const authUser = useSelector((state: RootState) => state.auth.user);
   
   const bottleRef = useRef<SVGSVGElement>(null);
   const [currentRotation, setCurrentRotation] = useState(0);
@@ -23,16 +57,21 @@ export default function BottleSpinner({ onSpinComplete }: BottleSpinnerProps) {
   useEffect(() => {
     function handleResize() {
       const w = window.innerWidth;
-      if (w < 480) {
+      const h = window.innerHeight;
+      
+      // Responsive radial positioning adapting to both width & height to avoid clash
+      if (w < 480 || h < 550) {
+        setRadius(100);
+      } else if (w < 640 || h < 650) {
         setRadius(120);
-      } else if (w < 640) {
+      } else if (w < 1024 || h < 750) {
         setRadius(150);
-      } else if (w < 1024) {
-        setRadius(190);
       } else if (w < 1280) {
-        setRadius(220);
+        setRadius(180);
+      } else if (w < 1536) {
+        setRadius(210);
       } else {
-        setRadius(260);
+        setRadius(240);
       }
     }
     window.addEventListener("resize", handleResize);
@@ -109,6 +148,9 @@ export default function BottleSpinner({ onSpinComplete }: BottleSpinnerProps) {
         const isOnline = player.isOnline;
         const rank = player.score && player.score >= 100 ? "MASTER" : "ROOKIE";
 
+        const stream = player.userId === authUser?._id ? localStream : remoteStreams[player.userId];
+        const hasVideo = stream && stream.getVideoTracks().length > 0;
+
         return (
           <div
             key={player.userId}
@@ -117,7 +159,8 @@ export default function BottleSpinner({ onSpinComplete }: BottleSpinnerProps) {
           >
             {/* Player Stream Card matching Stitch specs */}
             <div 
-              className={`w-20 sm:w-24 md:w-28 aspect-[3/4] rounded-2xl overflow-hidden glass-panel border transition-all duration-300 ${
+              onClick={() => onPlayerClick?.(player.userId)}
+              className={`w-16 sm:w-20 md:w-24 aspect-[3/4] rounded-2xl overflow-hidden glass-card border transition-all duration-300 cursor-pointer hover:scale-110 active:scale-95 ${
                 isCurrentTurn
                   ? "speaking-indicator border-neon-purple scale-105 shadow-[0_0_20px_rgba(188,19,254,0.3)] z-20"
                   : isOnline
@@ -126,11 +169,15 @@ export default function BottleSpinner({ onSpinComplete }: BottleSpinnerProps) {
               }`}
             >
               <div className="h-full relative bg-zinc-950/60">
-                <img
-                  src={avatarUrl}
-                  alt={player.username}
-                  className="w-full h-full object-cover opacity-80"
-                />
+                {hasVideo && stream ? (
+                  <VideoFeed stream={stream} muted={player.userId === authUser?._id} />
+                ) : (
+                  <img
+                    src={avatarUrl}
+                    alt={player.username}
+                    className="w-full h-full object-cover opacity-80"
+                  />
+                )}
 
                 {/* Status bottom overlay info */}
                 <div className="absolute bottom-0 inset-x-0 p-2 bg-gradient-to-t from-black/90 to-transparent text-left">
