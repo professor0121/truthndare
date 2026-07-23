@@ -20,8 +20,33 @@ import PodiumView from "../../../components/game/PodiumView";
 import BackgroundShader from "../../../components/ui/BackgroundShader";
 import Navbar from "../../../components/ui/Navbar";
 import Sidebar from "../../../components/ui/Sidebar";
-import { ShieldAlert } from "lucide-react";
+import { ShieldAlert, MessageSquare, X } from "lucide-react";
 import gsap from "gsap";
+
+interface ActiveVideoFeedProps {
+  stream: MediaStream;
+  muted?: boolean;
+}
+
+function ActiveVideoFeed({ stream, muted = false }: ActiveVideoFeedProps) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [stream]);
+
+  return (
+    <video
+      ref={videoRef}
+      autoPlay
+      playsInline
+      muted={muted}
+      className="w-full h-full object-cover animate-fade-in"
+    />
+  );
+}
 
 export default function RoomPage({ params }: { params: Promise<{ code: string }> }) {
   const router = useRouter();
@@ -30,7 +55,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
 
   const { activeRoom, error: roomError } = useSelector((state: RootState) => state.room);
   const { user, accessToken } = useSelector((state: RootState) => state.auth);
-  const { secondsLeft, timerActive } = useSelector((state: RootState) => state.game);
+  const { secondsLeft, timerActive, spinning } = useSelector((state: RootState) => state.game);
   
   const [copied, setCopied] = useState(false);
   const [localError, setLocalError] = useState("");
@@ -40,6 +65,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
   const [localStreamState, setLocalStreamState] = useState<MediaStream | null>(null);
   const [activeVideoUser, setActiveVideoUser] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   // WebRTC Peer Connections Refs
   const localStreamRef = useRef<MediaStream | null>(null);
@@ -613,7 +639,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
       {/* Main gameplay area margins fit inside Fixed Navigation Shell */}
       <main 
         ref={arenaContentRef}
-        className="ml-0 lg:ml-72 mr-0 xl:mr-80 pt-4 pb-20 px-6 h-[calc(100vh-120px)] flex flex-col items-center justify-center relative z-10"
+        className="ml-0 lg:ml-72 mr-0 xl:mr-80 pt-2 pb-6 px-4 md:pt-4 md:pb-20 md:px-6 h-[calc(100vh-130px)] lg:h-[calc(100vh-120px)] flex flex-col items-center justify-center relative z-10"
       >
         {/* 1. LOBBY WAITING SCREEN */}
         {status === "lobby" && (
@@ -664,7 +690,9 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
 
               {/* Center Play Circle Container */}
               <div className="flex-1 w-full flex items-center justify-center relative overflow-visible min-h-0">
-                <BottleSpinner localStream={localStreamState} remoteStreams={remoteStreams} onPlayerClick={setActiveVideoUser} />
+                {game.turnState !== "answering" && (
+                  <BottleSpinner localStream={localStreamState} remoteStreams={remoteStreams} onPlayerClick={setActiveVideoUser} />
+                )}
                 
                 {/* Overlay 1: Spin Bottle Button in center dial */}
                 {game.turnState === "selecting" && (
@@ -690,8 +718,8 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
                   </div>
                 )}
 
-                {/* Overlay 2: Choice (Truth/Dare) Buttons in center dial */}
-                {game.turnState === "choosing_type" && (
+                {/* Overlay 2: Choice (Truth/Dare) Buttons in center dial (only after spin finishes) */}
+                {game.turnState === "choosing_type" && !spinning && (
                   <div className="absolute z-30 pointer-events-auto flex flex-col items-center justify-center glass-card border border-neon-purple/20 rounded-3xl p-5 max-w-[240px] text-center shadow-[0_0_40px_rgba(188,19,254,0.15)] animate-scale-up">
                     <h3 className="text-[9px] font-headline font-black uppercase tracking-widest text-zinc-400 mb-3 leading-normal">
                       {isMyTurn ? "YOUR TURN: CHOOSE!" : `${currentPlayerName.toUpperCase()} IS CHOOSING...`}
@@ -721,34 +749,88 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
                   </div>
                 )}
 
-                {/* Overlay 3: Question / Dare Challenge card popup */}
-                {game.turnState === "answering" && (
-                  <div className="absolute z-30 pointer-events-auto flex flex-col items-center justify-center animate-scale-up">
-                    <QuestionCard
-                      type={game.selectedType}
-                      text={game.currentQuestion?.text}
-                      visible={true}
-                    />
-                    
-                    {/* Answer actions if it is my turn */}
-                    {isMyTurn && (
-                      <div className="mt-4 flex gap-3">
-                        <button
-                          onClick={() => handleSubmitOutcome("completed")}
-                          className="px-5 py-2.5 bg-neon-green text-black font-headline text-[9px] font-black uppercase tracking-wider rounded-xl hover:brightness-110 active:scale-95 transition-all cursor-pointer shadow-[0_0_15px_rgba(46,204,113,0.3)]"
-                        >
-                          Completed (+10)
-                        </button>
-                        <button
-                          onClick={() => handleSubmitOutcome("skipped")}
-                          className="px-5 py-2.5 bg-zinc-900 border border-zinc-800 text-zinc-400 font-headline text-[9px] font-bold uppercase tracking-wider rounded-xl hover:bg-zinc-800 active:scale-95 transition-all cursor-pointer"
-                        >
-                          Skip
-                        </button>
+                {/* Overlay 3: Question / Dare Challenge card popup (Challenge Stage) */}
+                {game.turnState === "answering" && (() => {
+                  const avatarUrl = currentPlayer?.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${currentPlayerName}`;
+                  const stream = game.currentPlayerId === user._id ? localStreamState : remoteStreams[game.currentPlayerId];
+                  const hasVideo = stream && stream.getVideoTracks().length > 0;
+                  
+                  return (
+                    <div className="w-full flex-1 flex flex-col md:flex-row items-center justify-center gap-6 md:gap-10 animate-scale-up p-4 min-h-0 overflow-y-auto">
+                      {/* Active Player Live Stream Feed Card */}
+                      <div className="flex flex-col items-center">
+                        <span className="text-[10px] font-headline font-black text-zinc-400 uppercase tracking-widest mb-2.5 text-center">
+                          {isMyTurn ? "YOUR TURN TO PERFORM!" : `WATCHING ${currentPlayerName.toUpperCase()}'S CHALLENGE...`}
+                        </span>
+                        
+                        <div className={`relative w-40 sm:w-44 md:w-48 aspect-[3/4] rounded-3xl overflow-hidden glass-card border transition-all duration-300 shadow-2xl ${
+                          game.selectedType === "truth"
+                            ? "border-neon-blue/60 shadow-[0_0_30px_rgba(0,229,255,0.25)]"
+                            : "border-neon-pink/60 shadow-[0_0_30px_rgba(255,45,85,0.25)]"
+                        }`}>
+                          <div className="h-full w-full relative bg-zinc-950/80 flex items-center justify-center">
+                            {hasVideo && stream ? (
+                              <ActiveVideoFeed stream={stream} muted={game.currentPlayerId === user._id} />
+                            ) : (
+                              <img
+                                src={avatarUrl}
+                                alt={currentPlayerName}
+                                className="w-20 h-20 sm:w-24 sm:h-24 object-cover opacity-80"
+                              />
+                            )}
+                            
+                            {/* Top indicator tag */}
+                            <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 px-2 py-0.5 rounded bg-black/60 border border-white/10">
+                              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                                currentPlayer?.isOnline ? "bg-neon-cyan shadow-[0_0_6px_#00e5ff]" : "bg-zinc-600"
+                              }`} />
+                              <span className="text-[7px] font-headline font-black text-neon-cyan tracking-wider font-mono uppercase">
+                                {currentPlayer?.isOnline ? "ONLINE" : "OFFLINE"}
+                              </span>
+                            </div>
+
+                            {/* Bottom info banner */}
+                            <div className="absolute bottom-0 inset-x-0 p-2.5 bg-gradient-to-t from-black/95 to-transparent text-left">
+                              <p className="font-headline text-[10px] text-white truncate font-extrabold uppercase tracking-wide">
+                                {currentPlayerName}
+                              </p>
+                              <p className="text-[8px] font-headline font-bold text-zinc-400 tracking-wider">
+                                Score: {currentPlayer?.score || 0} pts
+                              </p>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    )}
-                  </div>
-                )}
+
+                      {/* Question Card & Action Buttons Container */}
+                      <div className="flex flex-col items-center justify-center w-full max-w-[340px]">
+                        <QuestionCard
+                          type={game.selectedType}
+                          text={game.currentQuestion?.text}
+                          visible={true}
+                        />
+                        
+                        {/* Answer actions if it is my turn */}
+                        {isMyTurn && (
+                          <div className="mt-4 flex gap-3">
+                            <button
+                              onClick={() => handleSubmitOutcome("completed")}
+                              className="px-5 py-2.5 bg-neon-green text-black font-headline text-[9px] font-black uppercase tracking-wider rounded-xl hover:brightness-110 active:scale-95 transition-all cursor-pointer shadow-[0_0_15px_rgba(46,204,113,0.3)]"
+                            >
+                              Completed (+10)
+                            </button>
+                            <button
+                              onClick={() => handleSubmitOutcome("skipped")}
+                              className="px-5 py-2.5 bg-zinc-900 border border-zinc-800 text-zinc-400 font-headline text-[9px] font-bold uppercase tracking-wider rounded-xl hover:bg-zinc-800 active:scale-95 transition-all cursor-pointer"
+                            >
+                              Skip
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Bottom Stage Footer */}
@@ -857,6 +939,39 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
           </div>
         );
       })()}
+
+      {/* Floating Chat Trigger Button for Mobile/Tablet */}
+      {status !== "finished" && (
+        <button
+          onClick={() => setIsChatOpen(!isChatOpen)}
+          className="fixed bottom-4 right-4 z-50 xl:hidden w-12 h-12 rounded-full bg-neon-purple hover:bg-neon-purple/80 text-white flex items-center justify-center shadow-[0_0_20px_rgba(188,19,254,0.4)] cursor-pointer active:scale-95 transition-all"
+        >
+          <MessageSquare className="w-5 h-5" />
+        </button>
+      )}
+
+      {/* Slide-over Drawer for Mobile/Tablet Chat */}
+      {status !== "finished" && isChatOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 xl:hidden flex justify-end animate-fade-in">
+          <div className="w-80 h-full bg-[#141319] border-l border-zinc-800 shadow-2xl relative flex flex-col p-4 animate-slide-in">
+            {/* Close Button at top of drawer */}
+            <div className="flex justify-between items-center mb-3">
+              <span className="font-headline font-bold text-xs uppercase tracking-wider text-zinc-400">
+                Lobby Chat
+              </span>
+              <button 
+                onClick={() => setIsChatOpen(false)}
+                className="text-zinc-500 hover:text-white p-1 rounded hover:bg-white/5 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 min-h-0">
+              <RoomSidebar roomCode={code} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
